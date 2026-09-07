@@ -556,3 +556,62 @@ def view_google_login(request):
 
     login(request, user)
     return JsonResponse({"success": True, "message": "Logged in with Google."})
+
+
+
+@require_POST
+def view_forgot_password(request):
+    data = json.loads(request.body)
+    email = data.get("email", "").strip().lower()
+
+    if not email:
+        return JsonResponse({"success": False, "error": "Email is required."}, status=400)
+
+    user = User.objects.filter(email=email, is_active=True).first()
+
+    if not user:
+        return JsonResponse({"success": False, "error": "No account found with this email."}, status=400)
+
+    if not _send_otp_email(user):
+        return JsonResponse({"success": False, "error": "Couldn't send reset code — check the email address."}, status=400)
+
+    return JsonResponse({"success": True, "message": "Reset code sent.", "email": email})
+
+
+@require_POST
+def view_reset_password(request):
+    data = json.loads(request.body)
+    email = data.get("email", "").strip().lower()
+    otp_code = data.get("otp", "").strip()
+    new_password = data.get("new_password", "")
+    confirm_new_password = data.get("confirm_new_password", "")
+
+    if not email or not otp_code or not new_password:
+        return JsonResponse({"success": False, "error": "All fields are required."}, status=400)
+
+    if new_password != confirm_new_password:
+        return JsonResponse({"success": False, "error": "Passwords do not match."}, status=400)
+
+    if len(new_password) < 8:
+        return JsonResponse({"success": False, "error": "Password must be at least 8 characters."}, status=400)
+
+    try:
+        user = User.objects.get(email=email, is_active=True)
+    except User.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Invalid request."}, status=400)
+
+    otp_obj = EmailOTP.objects.filter(user=user, otp=otp_code).order_by("-created_at").first()
+
+    if not otp_obj:
+        return JsonResponse({"success": False, "error": "Incorrect OTP."}, status=400)
+
+    if not otp_obj.is_valid():
+        return JsonResponse({"success": False, "error": "OTP expired. Please request a new one."}, status=400)
+
+    user.set_password(new_password)
+    user.save()
+    EmailOTP.objects.filter(user=user).delete()
+
+    login(request, user)  # fresh password just proven via OTP — safe to log them straight in
+
+    return JsonResponse({"success": True, "message": "Password reset successfully."})

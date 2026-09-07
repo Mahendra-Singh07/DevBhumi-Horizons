@@ -24,4 +24,6 @@ urlpatterns = [
     path("my-bookings/", view_my_bookings, name="my_bookings"),
     
     path("auth/google/", view_google_login, name="google_login"),
+    path("auth/forgot-password/", view_forgot_password, name="forgot_password"),
+    path("auth/reset-password/", view_reset_password, name="reset_password"),
 ]

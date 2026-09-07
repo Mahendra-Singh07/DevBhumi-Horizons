@@ -36,7 +36,7 @@
           </div>
 
           <div class="auth-forgot">
-            <a href="#">Forgot Password?</a>
+            <a href="#" id="showForgotBtn">Forgot Password?</a>
           </div>
 
           <button type="submit" class="btn btn-primary auth-submit">Login</button>
@@ -161,6 +161,86 @@
           <p class="auth-resend">
             Didn't receive the code?
             <button type="button" id="resendOtpBtn">Resend OTP</button>
+          </p>
+        </form>
+      </div>
+    </div>
+
+    <!-- ---------- FORGOT PASSWORD (step 1: email) ---------- -->
+    <div class="auth-modal-body auth-modal-body-otp" id="authBodyForgot" hidden>
+      <div class="auth-pane auth-pane-form auth-pane-otp">
+        <h2>Reset your password</h2>
+        <p class="auth-subtitle">Enter your email and we'll send you a reset code</p>
+
+        <form id="forgotForm" novalidate>
+          {% csrf_token %}
+
+          <div class="auth-field">
+            <label for="forgotEmail">Email</label>
+            <div class="auth-input">
+              <i class="fa-solid fa-envelope"></i>
+              <input type="email" id="forgotEmail" name="email" placeholder="Enter your email" autocomplete="email" required>
+            </div>
+          </div>
+
+          <p class="auth-otp-error" id="forgotError" hidden></p>
+
+          <button type="submit" class="btn btn-primary auth-submit">Send Reset Code</button>
+
+          <p class="auth-resend">
+            Remembered your password?
+            <button type="button" id="backToLoginFromForgot">Login</button>
+          </p>
+        </form>
+      </div>
+    </div>
+
+    <!-- ---------- RESET PASSWORD (step 2: otp + new password) ---------- -->
+    <div class="auth-modal-body auth-modal-body-otp" id="authBodyResetPassword" hidden>
+      <div class="auth-pane auth-pane-form auth-pane-otp">
+        <h2>Enter reset code</h2>
+        <p class="auth-subtitle">
+          Code sent to <strong id="resetEmailDisplay"></strong>
+        </p>
+
+        <form id="resetPasswordForm" novalidate>
+          {% csrf_token %}
+
+          <div class="otp-inputs" id="resetOtpInputs">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-otp-index="0">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-otp-index="1">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-otp-index="2">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-otp-index="3">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-otp-index="4">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-otp-index="5">
+          </div>
+
+          <div class="auth-field">
+            <label for="newPassword">New password</label>
+            <div class="auth-input">
+              <i class="fa-solid fa-lock"></i>
+              <input type="password" id="newPassword" name="new_password" placeholder="Create a new password" autocomplete="new-password" required>
+              <button type="button" class="auth-toggle-pass" data-target="newPassword" aria-label="Show password">
+                <i class="fa-solid fa-eye-slash"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="auth-field">
+            <label for="confirmNewPassword">Confirm new password</label>
+            <div class="auth-input">
+              <i class="fa-solid fa-lock"></i>
+              <input type="password" id="confirmNewPassword" name="confirm_new_password" placeholder="Confirm new password" autocomplete="new-password" required>
+            </div>
+          </div>
+
+          <p class="auth-otp-error" id="resetError" hidden></p>
+
+          <button type="submit" class="btn btn-primary auth-submit">Reset Password</button>
+
+          <p class="auth-resend">
+            Didn't receive the code?
+            <button type="button" id="resendResetOtpBtn">Resend OTP</button>
           </p>
         </form>
       </div>
