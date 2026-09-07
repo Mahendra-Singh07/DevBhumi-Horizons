@@ -1,0 +1,109 @@
+{% extends 'travelingapp/base.html' %}
+{% load static %}
+{% block header_mode%}is-transparent{% endblock header_mode%}
+{% block extra_css%}
+<link rel="stylesheet" href="{% static 'travelingapp/css/explore-treks.css' %}">
+<link rel="stylesheet" href="{% static 'travelingapp/css/destinations.css' %}">
+{% endblock extra_css %}
+{% block body %}
+<section class="page-hero">
+    <div class="page-hero-media">
+        <img src="{% static 'travelingapp/image/AULI.jpg' %}" alt="Uttarakhand destinations">
+        <div class="hero-overlay"></div>
+    </div>
+    <div class="container page-hero-content">
+        <span class="badge">Destinations</span>
+        <h1>Discover Uttarakhand</h1>
+        <p>Sacred temples, alpine meadows and misty hill towns — pick where your story begins.</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="destinations-grid">
+            <div class="dest-card">
+                <div class="dest-img">
+                    <img src="{% static 'travelingapp/image/Kedarnath_Temple.jpg' %}" alt="Kedarnath">
+                </div>
+                <div class="dest-body">
+                    <h3>Kedarnath</h3>
+                    <p>Home to the sacred Kedarnath Jyotirlinga, cradled by snow-capped peaks in the Garhwal Himalayas.</p>
+                    <a href="{% url 'package_detail' 'kedarnath-trek' %}" class="dest-link">Explore <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="dest-card">
+                <div class="dest-img">
+                    <img src="{% static 'travelingapp/image/BADRINATH.jpg' %}" alt="Badrinath">
+                </div>
+                <div class="dest-body">
+                    <h3>Badrinath</h3>
+                    <p>One of the Char Dham shrines, dedicated to Lord Vishnu, set beside the Alaknanda River.</p>
+                    <a href="{% url 'package_detail' 'char-dham-yatra' %}" class="dest-link">Explore <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="dest-card">
+                <div class="dest-img">
+                    <img src="{% static 'travelingapp/image/VALLEY-OF-FLOWERS.jpg' %}" alt="Valley of Flowers">
+                </div>
+                <div class="dest-body">
+                    <h3>Valley of Flowers</h3>
+                    <p>A UNESCO World Heritage site bursting with alpine wildflowers every monsoon season.</p>
+                    <a href="{% url 'package_detail' 'valley-of-flowers' %}" class="dest-link">Explore <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="dest-card">
+                <div class="dest-img">
+                    <img src="{% static 'travelingapp/image/AULI.jpg' %}" alt="Auli">
+                </div>
+                <div class="dest-body">
+                    <h3>Auli</h3>
+                    <p>Uttarakhand's premier ski destination with sweeping views of Nanda Devi.</p>
+                    <a href="{% url 'explore' %}" class="dest-link">Explore <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="dest-card">
+                <div class="dest-img">
+                    <img src="{% static 'travelingapp/image/MUSSOORIE.jpg' %}" alt="Mussoorie">
+                </div>
+                <div class="dest-body">
+                    <h3>Mussoorie</h3>
+                    <p>The 'Queen of Hills' — colonial charm, misty ridges and effortless getaways.</p>
+                    <a href="{% url 'explore' %}" class="dest-link">Explore <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="dest-card">
+                <div class="dest-img">
+                    <img src="{% static 'travelingapp/image/NAINITAL.jpg' %}" alt="Nainital">
+                </div>
+                <div class="dest-body">
+                    <h3>Nainital</h3>
+                    <p>A serene lake town ringed by forested hills, perfect for a relaxed escape.</p>
+                    <a href="{% url 'explore' %}" class="dest-link">Explore <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="dest-card">
+                <div class="dest-img">
+                    <img src="{% static 'travelingapp/image/rishikesh.jpg' %}" alt="Rishikesh">
+                </div>
+                <div class="dest-body">
+                    <h3>Rishikesh</h3>
+                    <p>The yoga capital of the world, where the Ganges rushes past ashrams and adventure camps.</p>
+                    <a href="{% url 'explore' %}" class="dest-link">Explore <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="dest-card">
+                <div class="dest-img">
+                    <img src="{% static 'travelingapp/image/HARIDWAR.jpg' %}" alt="Haridwar">
+                </div>
+                <div class="dest-body">
+                    <h3>Haridwar</h3>
+                    <p>A holy city on the Ganges, famous for its evening Ganga Aarti at Har Ki Pauri.</p>
+                    <a href="{% url 'explore' %}" class="dest-link">Explore <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% include 'travelingapp/partials/cta.html' %}
+{% endblock body %}

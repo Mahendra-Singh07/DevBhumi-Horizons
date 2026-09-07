@@ -1,0 +1,111 @@
+{% load static %}
+<section id="home" class="hero">
+    <div class="hero-media">
+        <img src="{% static 'travelingapp/image/new_hero_image_devbhumi.png' %}" alt="Uttarakhand Himalayas" />
+        <div class="hero-overlay"></div>
+    </div>
+
+    <div class="hero-inner container">
+        <div class="hero-content">
+            <span class="badge"><i class="fa-solid fa-mountain-sun"></i> Land of the Gods</span>
+            <h1>Explore the Unseen <span>Uttarakhand</span></h1>
+            <p>
+                Curated treks, sacred pilgrimages and authentic local experiences across
+                the Himalayas.
+            </p>
+
+            <!-- <div class="hero-trust">
+                <div class="hero-trust-item">
+                    <span class="hero-trust-icon"><i class="fa-solid fa-shield-halved"></i></span>
+                    <div>
+                        <strong>Safe &amp; Trusted</strong>
+                        <span>Verified experiences</span>
+                    </div>
+                </div>
+                <div class="hero-trust-item">
+                    <span class="hero-trust-icon"><i class="fa-solid fa-people-group"></i></span>
+                    <div>
+                        <strong>Expert Local Guides</strong>
+                        <span>Knowledgeable &amp; friendly</span>
+                    </div>
+                </div>
+                <div class="hero-trust-item">
+                    <span class="hero-trust-icon"><i class="fa-solid fa-leaf"></i></span>
+                    <div>
+                        <strong>Sustainable Travel</strong>
+                        <span>Responsible tourism</span>
+                    </div>
+                </div>
+            </div> -->
+        </div>
+
+        <form class="hero-search" method="get">
+            <div class="hero-search-field">
+                <span class="hero-search-icon"><i class="fa-solid fa-location-dot"></i></span>
+                <div class="hero-search-input">
+                    <label for="hs-destination">Where to?</label>
+                    <input type="text" id="hs-destination" name="destination" placeholder="Search destination" autocomplete="off">
+                    <!-- <select id="hs-destination" name="destination">
+                        <option value="" selected disabled>Select Destination</option>
+
+                        {% for package in packages %}
+                        <option value="{{ package.slug }}">
+                            {{ package.package_name }}
+                        </option>
+                        {% endfor %}
+                    </select> -->
+                    <small>e.g. Kedarnath, Valley of Flowers</small>
+                </div>
+                <div class="heroSearchSuggestion"></div>
+            </div>
+
+            <span class="hero-search-divider"></span>
+
+            <div class="hero-search-field">
+                <span class="hero-search-icon"><i class="fa-solid fa-calendar-days"></i></span>
+                <div class="hero-search-input">
+                    <label for="hs-date">Travel Date</label>
+                    <input type="date" id="hs-date" name="travel_date" placeholder="Select date" />
+                    <small>Select your departure date</small>
+                </div>
+                <i class="fa-solid fa-chevron-down hero-select-arrow"></i>
+            </div>
+
+            <span class="hero-search-divider"></span>
+
+            <div class="hero-search-field">
+                <span class="hero-search-icon"><i class="fa-solid fa-user-group"></i></span>
+                <div class="hero-search-input">
+                    <label for="hs-travelers">Travelers</label>
+                    <input type="number" id="hs-travelers" name="total_travelers" min="1" max="15"
+                        placeholder="Number of travelers" />
+                    <small>Adults & children</small>
+                </div>
+                
+                <i class="fa-solid fa-chevron-down hero-select-arrow"></i>
+            </div>
+
+            <!-- <span class="hero-search-divider"></span> -->
+
+            <!-- <div class="hero-search-field">
+                <span class="hero-search-icon"><i class="fa-solid fa-mountain"></i></span>
+                <div class="hero-search-input">
+                    <label for="hs-type">Trip Type</label>
+                    <select id="hs-type" name="trip_type">
+                        <option value="">Select type</option>
+                        <option value="trek">Trek</option>
+                        <option value="pilgrimage">Pilgrimage</option>
+                        <option value="adventure">Adventure</option>
+                    </select>
+                </div>
+                <i class="fa-solid fa-chevron-down hero-select-arrow"></i>
+            </div> -->
+
+            <button type="submit" class="btn btn-primary hero-search-btn">
+                <i class="fa-solid fa-magnifying-glass"></i> Search Trips
+            </button>
+        </form>
+    </div>
+
+    <a href="#tours" class="scroll-cue" aria-label="Scroll down"><i class="fa-solid fa-chevron-down"></i></a>
+</section>

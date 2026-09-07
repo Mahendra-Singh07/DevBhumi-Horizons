@@ -1,0 +1,64 @@
+{% load static %}
+<section class="tours-section section" id="tours">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">Handpicked For You</span>
+            <h2>The Best Tour Packages</h2>
+            <p>Every itinerary is designed by local experts who know every trail, temple and turn.</p>
+        </div>
+
+        <div class="package-container">
+            <div class="package-card">
+                <div class="package-img">
+                    <img src="{% static 'travelingapp/image/Kedarnath_Temple.jpg' %}" alt="Kedarkantha Trek">
+                    <span class="badge card-badge">Bestseller</span>
+                </div>
+                <div class="package-body">
+                    <div class="rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.8</div>
+                    <h3>Kedarnath Trek</h3>
+                    <p class="package-meta"><i class="fa-solid fa-clock"></i> 4 Days &nbsp;|&nbsp; <i class="fa-solid fa-signal"></i> Moderate</p>
+                    <div class="package-footer">
+                        <span class="price">&#8377;17,400 <small>/person</small></span>
+                        <a href="{% url 'package_detail' 'kedarnath-trek' %}" class="btn btn-outline-dark btn-sm">View Details</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="package-card">
+                <div class="package-img">
+                    <img src="{% static 'travelingapp/image/Chardham-Yatra.webp' %}" alt="Char Dham Yatra">
+                    <span class="badge card-badge">Pilgrimage</span>
+                </div>
+                <div class="package-body">
+                    <div class="rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i> 5.0</div>
+                    <h3>Char Dham Yatra</h3>
+                    <p class="package-meta"><i class="fa-solid fa-clock"></i> 12 Days &nbsp;|&nbsp; <i class="fa-solid fa-signal"></i> Easy</p>
+                    <div class="package-footer">
+                        <span class="price">&#8377;50,400 <small>/person</small></span>
+                        <a href="{% url 'package_detail' 'char-dham-yatra'  %}" class="btn btn-outline-dark btn-sm">View Details</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="package-card">
+                <div class="package-img">
+                    <img src="{% static 'travelingapp/image/VALLEY-OF-FLOWERS.jpg' %}" alt="Valley of Flowers">
+                    <span class="badge card-badge">Nature</span>
+                </div>
+                <div class="package-body">
+                    <div class="rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.7</div>
+                    <h3>Valley of Flowers</h3>
+                    <p class="package-meta"><i class="fa-solid fa-clock"></i> 6 Days &nbsp;|&nbsp; <i class="fa-solid fa-signal"></i> Moderate</p>
+                    <div class="package-footer">
+                        <span class="price">&#8377;19,200 <small>/person</small></span>
+                        <a href="{% url 'package_detail' 'valley-of-flowers' %}" class="btn btn-outline-dark btn-sm">View Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-cta">
+            <a href="{% url 'explore' %}" class="btn btn-primary">View All Packages <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+    </div>
+</section>

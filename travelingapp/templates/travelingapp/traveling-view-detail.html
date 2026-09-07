@@ -1,0 +1,252 @@
+{% extends 'travelingapp/base.html' %}
+{% load static %}
+{% block title%}Kedarnath Trek{% endblock title %}
+{% block header_mode %}is-transparent{% endblock header_mode %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'travelingapp/css/traveling-view-detail.css' %}" />
+{% endblock extra_css %}
+{% block body %}
+<section class="detail-hero">
+    <div class="detail-hero-media">
+        <img src="{{ package.hero_image.url }}" alt="{{ package.package_name }}">
+        <div class="hero-overlay"></div>
+    </div>
+    <div class="container detail-hero-content">
+        <span class="badge">{{package.short_description}}</span>
+        <h1>{{package.package_name}}</h1>
+        <p>{{package.description}}</p>
+        <div class="detail-hero-footer">
+            <span class="detail-hero-price">&#8377;{{package.price}}<small>/ person</small></span>
+            <a href="{% url 'booking' %}" class="btn btn-secondary">Book Now <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+    </div>
+</section>
+
+<section class="detail-and-booking-section section">
+    <div class="container detail-layout">
+        <div class="detail-container">
+            <h2>{{package.package_name}}{{package.package_duration}}</h2>
+            <p class="tagline">{{package.short_description}}</p>
+
+            <div class="fact-strip">
+                <div class="fact-item">
+                    <i class="fa-solid fa-calendar-days"></i><span>{{package.package_duration}}</span>
+                </div>
+                <div class="fact-item">
+                    <i class="fa-solid fa-signal"></i><span>{{package.difficulty}}</span>
+                </div>
+                <div class="fact-item">
+                    <i class="fa-solid fa-user-group"></i><span>{{package.max_people}} People</span>
+                </div>
+                <div class="fact-item">
+                    <i class="fa-solid fa-sun"></i><span>{{package.season}}</span>
+                </div>
+            </div>
+
+            <div class="detail-box">
+                <h3><i class="fa-solid fa-location-dot"></i> Location</h3>
+                <ul>
+                    <li>Region: {{package.location.region}}</li>
+                    <li>Place: {{package.location.place}}</li>
+                    <li>Altitude: {{package.location.altitude}}</li>
+                    <li>Base Point: {{package.location.base_point}}</li>
+                    <li>Nearest Towns: {{package.location.nearest_town}}</li>
+                </ul>
+            </div>
+
+            <!-- # Ye package.location aaya kahan se?
+            # Ye is line ki wajah se:
+            # related_name="location"
+            # Django automatically package.location provide karta hai.
+            # Agar tum related_name nahi doge, to access karna padega:
+            # {{ package.location_set.region }}
+            # OneToOneField me default reverse name alag hota hai aur itna readable nahi hota, isliye related_name="location" dena best practice hai. -->
+
+            <div class="detail-box">
+                <h3><i class="fa-solid fa-route"></i> Day-wise Itinerary</h3>
+                <div class="itinerary-timeline">
+                    {% for day in package.itineraries.all %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker">{{day.day_number}}</div>
+                        <div class="timeline-content">
+                            <h4>Day {{day.day_number}} &mdash; {{day.day_title}}</h4>
+                            <!-- <ul><li>Departure from Delhi to Guptkashi</li><li>Scenic drive via Haridwar &amp; Devprayag</li><li>Check-in at hotel, dinner &amp; rest</li></ul> -->
+                            <ul>
+                                {% for point in day.points.all %}
+                                <li>{{ point.point }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="detail-box">
+                <h3><i class="fa-solid fa-utensils"></i> Food &amp; Stay</h3>
+                <!-- <ul>
+                    <li>Stay: Hotels / Camps / Dharamshalas</li>
+                    <li>Meals: Breakfast, Lunch &amp; Dinner included</li>
+                    <li>Special Meals: Satvik / Jain on request</li>
+                </ul> -->
+                <ul>
+                    {% for item in food_items %}
+                    <li>{{item}}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="detail-box">
+                <h3><i class="fa-solid fa-car"></i> Travel &amp; Driver</h3>
+                <ul>
+                    <li>Vehicle: {{package.travel_driver.vehicle}}</li>
+                    <li>
+                        Driver Charges: &#8377;{{package.travel_driver.charge_per_day}}/day &times; {{package.travel_driver.total_days}} = &#8377;
+                        {{package.travel_driver.total_driver_charge}}
+                    </li>
+                    <li>Driver Add-on: {{package.travel_driver.driver_addon}}</li>
+                </ul>
+            </div>
+
+            <div class="detail-box">
+                <h3><i class="fa-solid fa-indian-rupee-sign"></i> Pricing Breakdown</h3>
+                <table class="pricing-table">
+                    <tr>
+                        <th>Items</th>
+                        <th>Cost (INR)</th>
+                    </tr>
+                    <tr>
+                        <td>Base Tour Cost</td>
+                        <td>&#8377;{{package.pricing.base_cost}}</td>
+                    </tr>
+                    <tr>
+                        <td>Our commission (20%)</td>
+                        <td>&#8377;{{package.pricing.our_commission}}</td>
+                    </tr>
+                    <tr>
+                        <td>Final Price (without driver)</td>
+                        <td>&#8377;{{package.pricing.final_price}}</td>
+                    </tr>
+                    <tr>
+                        <td>Driver Add-on ({{package.travel_driver.total_days}} Days)</td>
+                        <td>&#8377;{{package.pricing.driver_charges}}</td>
+                    </tr>
+                    <tr>
+                        <td>Total with Driver</td>
+                        <td>&#8377;{{package.pricing.total_with_driver}}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="detail-box inclusions-exclusions">
+                <div class="inc-col">
+                    <h3><i class="fa-solid fa-circle-check"></i> Inclusions</h3>
+                    <ul class="check-list">
+                        <li><i class="fa-solid fa-check"></i> Accommodation</li>
+                        <li>
+                            <i class="fa-solid fa-check"></i> Meals (Breakfast + Dinner)
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-check"></i> Temple entry &amp; trek permits
+                        </li>
+                        <li><i class="fa-solid fa-check"></i> Local guide &amp; support</li>
+                        <li><i class="fa-solid fa-check"></i> Emergency medical kit</li>
+                        <li><i class="fa-solid fa-check"></i> Optional driver service</li>
+                    </ul>
+                </div>
+                <div class="exc-col">
+                    <h3><i class="fa-solid fa-circle-xmark"></i> Exclusions</h3>
+                    <ul class="cross-list">
+                        <li>
+                            <i class="fa-solid fa-xmark"></i> Personal snacks &amp; lunch
+                        </li>
+                        <li><i class="fa-solid fa-xmark"></i> Pony / Palki charges</li>
+                        <li>
+                            <i class="fa-solid fa-xmark"></i> Insurance &amp; medical expenses
+                        </li>
+                        <li><i class="fa-solid fa-xmark"></i> Tips &amp; donations</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="detail-box">
+                <h3><i class="fa-solid fa-star"></i> Highlights</h3>
+                <ul>
+                    <li>Complete Kedarnath circuit</li>
+                    <li>Himalayan temples + scenic drives</li>
+                    <li>Optional Rishikesh add-on</li>
+                    <li>Transparent pricing with commission breakdown</li>
+                </ul>
+            </div>
+
+            <div class="detail-box">
+                <h3><i class="fa-solid fa-images"></i> Photo Gallery</h3>
+                <div class="detail-gallery">
+                    {% for photo in package.gallery.all %}
+                    <div class="detail-gallery-item">
+                        <img src="{{photo.image.url}}" alt="{{photo.caption}}" />
+                    </div>
+                    {% empty %}
+                    <p>No gallery images available.</p>
+                    {% endfor %}
+                    <!-- <div class="detail-gallery-item"><img src="{% static 'travelingapp/image/CHOPTA.jpg' %}" alt="CHOPTA.jpg"></div>
+                    <div class="detail-gallery-item"><img src="{% static 'travelingapp/image/Guptkashi.png' %}" alt="Guptkashi.png"></div>
+                    <div class="detail-gallery-item"><img src="{% static 'travelingapp/image/rishikesh.jpg' %}" alt="rishikesh.jpg"></div> -->
+                </div>
+            </div>
+        </div>
+
+        <div class="booking-container">
+            <h2>Book This Package</h2>
+            <p class="booking-note">
+                Reserve your spot &mdash; our team will confirm your booking within 24
+                hours.
+            </p>
+            <form action="{% url 'booking' %}" method="get">
+                <input type="text" placeholder="Your Name" name="name" />
+                <input type="email" placeholder="Your Email" name="email" />
+                <input type="number" min="1" value="1" name="total_travelers" />
+                <textarea placeholder="Special Requests" name="request"></textarea>
+                <input type="hidden" name="package_slug" value="{{package.slug}}" />
+                <!-- <a href="{% url 'booking' %}" class="btn btn-primary btn-block">Continue to Booking <i class="fa-solid fa-arrow-right"></i></a> -->
+                <button type="submit" class="btn btn-primary btn-block">
+                    Continue to Booking <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+            <div class="booking-contact-row">
+                <a href="tel:+917982479183" class="btn btn-outline-dark btn-sm"><i class="fa-solid fa-phone"></i>
+                    Call</a>
+                <a href="https://wa.me/917982479183" target="_blank" class="btn btn-secondary btn-sm"><i
+                        class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container related-packages">
+        <div class="section-heading">
+            <span class="eyebrow">You May Also Like</span>
+            <h2>Related Packages</h2>
+        </div>
+        <div class="package-container">
+            <!--  -->
+            <!-- </div> -->
+            {% for related in related_packages%}
+            <div class="package-card">
+                <div class="package-img">
+                    <img src="{{ related.hero_image.url }}" alt="{{ related.package_name }}">
+                </div>
+                <div class="package-body">
+                    <h3>{{related.package_name}}</h3>
+                    <p class="package-meta"><i class="fa-solid fa-clock"></i> {{related.package_duration}}</p>
+                    <div class="package-footer">
+                        <span class="price">&#8377;{{related.price}} <small>/person</small></span>
+                        <a href="{% url 'package_detail' related.slug %}" class="btn btn-outline-dark btn-sm">View Details</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+</section>
+{% endblock body %}

@@ -1,0 +1,157 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DevBhumi Horizons — premium curated treks, pilgrimages and getaways across Uttarakhand, the land of gods.">
+    <title>DevBhumi Horizons | {% block title %}Explore Uttarakhand{% endblock title %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="{% static 'travelingapp/css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'travelingapp/css/travelling.css' %}">
+    <link rel="stylesheet" href="{% static 'travelingapp/css/auth.css' %}">
+    {% block extra_css %}
+    {% endblock extra_css %}
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+      integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="icon" type="image/jpg" href="{% static 'travelingapp/image/icon-logo.jpg' %}">
+</head>
+<body data-page="{% block page_id %}{% endblock page_id %}">
+
+    <div class="preloader" id="preloader">
+        <div class="preloader-spinner"></div>
+    </div>
+
+    <header class="site-header {% block header_mode %}is-solid{% endblock header_mode %}" id="siteHeader">
+        <nav class="navbar">
+            <a href="{% url 'home' %}" class="brand">
+                <img id="siteLogo" src="{% static 'travelingapp/image/devbhumi-white.png' %}" alt="DevBhumi Horizons Logo">
+                <!-- <span class="brand-name">DevBhumi Horizons</span> -->
+            </a>
+
+            <ul id="navMenu" class="nav-menu">
+                <li><a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a></li>
+                <li><a href="{% url 'explore' %}" class="{% if request.resolver_match.url_name == 'explore' %}active{% endif %}">Packages</a></li>
+                <li><a href="{% url 'destinations' %}" class="{% if request.resolver_match.url_name == 'destinations' %}active{% endif %}">Destinations</a></li>
+                <li><a href="{% url 'about' %}" class="{% if request.resolver_match.url_name == 'about' %}active{% endif %}">About</a></li>
+                <li><a href="{% url 'home' %}#contact" class="{% if request.resolver_match.url_name == 'contact' %}active{% endif %}">Contact</a></li>
+
+                {% if user.is_authenticated %}
+                <li class="nav-profile-item">
+                    <button type="button" class="nav-profile-trigger" id="navProfileTrigger">
+                        <span class="nav-profile-avatar">
+                            {% if user.profile.profile_picture %}
+                                <img src="{{ user.profile.profile_picture.url }}" alt="">
+                            {% else %}
+                                {{ user.profile.initials }}
+                            {% endif %}
+                        </span>
+                        {{ user.first_name }}
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <div class="nav-profile-dropdown" id="navProfileDropdown">
+                        <a href="{% url 'profile' %}"><i class="fa-solid fa-user"></i> My Profile</a>
+                        <a href="{% url 'my_bookings' %}"><i class="fa-solid fa-suitcase"></i> My Bookings</a>
+                        <a href="#" class="danger js-logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                    </div>
+                </li>
+                {% else %}
+                <li><a href="#" class="nav-login" data-auth-trigger="login"><i class="fa-solid fa-user"></i> Login</a></li>
+                {% endif %}
+
+                <li><a href="{% url 'booking' %}" class="nav-cta {% if request.resolver_match.url_name == 'booking' %}active{% endif %}">Book Now</a></li>
+            </ul>
+
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+                <span></span><span></span><span></span>
+            </button>
+        </nav>
+        <div class="nav-overlay" id="navOverlay"></div>
+    </header>
+
+    <main>
+        {% block body %}
+        {% endblock body %}
+    </main>
+
+    <footer class="site-footer" id="contact">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="{% static 'travelingapp/image/devbhumi-white.png' %}" alt="DevBhumi Horizons Logo">
+                    <p>DevBhumi Horizons crafts safe, authentic and unforgettable journeys through the Himalayan landscapes, sacred temples and hidden valleys of Uttarakhand.</p>
+                    <div class="footer-social">
+                        <a href="https://instagram.com/official_bisht_098" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="https://www.facebook.com" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="https://www.twitter.com" target="_blank" rel="noopener" aria-label="Twitter"><i class="fa-brands fa-twitter"></i></a>
+                        <a href="https://wa.me/917982479183" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="{% url 'home' %}">Home</a></li>
+                        <li><a href="{% url 'explore' %}">Packages</a></li>
+                        <li><a href="{% url 'destinations' %}">Destinations</a></li>
+                        <li><a href="{% url 'about' %}">About Us</a></li>
+                        <li><a href="{% url 'booking' %}">Book Now</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Popular Packages</h4>
+                    <ul>
+        
+                        <li><a href="{% url 'explore' %}">All Packages</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Get In Touch</h4>
+                    <p><i class="fa-solid fa-envelope"></i> devbhumi@gmail.com</p>
+                    <p><i class="fa-solid fa-phone-volume"></i> +91 7982478183</p>
+                    <p><i class="fa-solid fa-location-dot"></i> Village-palla, Faridabad, Haryana 121003</p>
+                    {% if messages %}
+                        {% for mssg in messages %}
+                            <div class="newsletter-message {{ mssg.tags }}">
+                                {{ mssg }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    <form class="newsletter-form" action="{% url 'subscribe' %}" method="POST">
+                        {% csrf_token %}
+                        <input type="email" name="email" placeholder="Your email for updates">
+                        <button type="submit" aria-label="Subscribe"><i class="fa-solid fa-paper-plane"></i></button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy 2025 DevBhumi Horizons | All Rights Reserved</p>
+                <a href="#top" class="back-to-top" id="backToTop" aria-label="Back to top">
+                    <i class="fa-solid fa-arrow-up"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    {% include 'travelingapp/partials/auth_modal.html' %}
+
+    <script>
+      window.GOOGLE_CLIENT_ID = "{{ GOOGLE_CLIENT_ID }}";
+    </script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <script src="{% static 'travelingapp/js/traveling.js' %}"></script>
+    <script src="{% static 'travelingapp/js/auth.js' %}"></script>
+    {% block extra_js %}{% endblock extra_js %}
+</body>
+</html>

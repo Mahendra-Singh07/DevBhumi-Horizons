@@ -1,0 +1,184 @@
+{% extends 'travelingapp/base.html' %}
+{% load static %}
+{% block title %}Book Now{% endblock title %}
+{% block header_mode%}is-transparent{% endblock header_mode%}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'travelingapp/css/travel-booking-page.css' %}">
+{% endblock extra_css %}
+{% block body %}
+<section class="booking-hero">
+    <div class="booking-hero-media">
+        <img src="{% static 'travelingapp/image/HEMKUND-SAHIB.jpg' %}" alt="Book your Uttarakhand trip">
+        <div class="hero-overlay"></div>
+    </div>
+    <div class="container booking-hero-content">
+        <span class="badge">Book Now</span>
+        <h1>Reserve Your Himalayan Journey</h1>
+        <p>A few details and we'll take care of the rest — guides, stays, transport and permits.</p>
+    </div>
+</section>
+
+<section class="booking-section section">
+    <div class="container booking-layout">
+        <div class="booking-form-card">
+            <h2>Traveler Information</h2>
+            <p class="form-subtitle">Fill in your details and our team will confirm within 24 hours.</p>
+
+            {% if messages %}
+                {% for msg in messages %}
+                <div class="flash-message {{ msg.tags }}"><i class="fa-solid fa-circle-check"></i> {{ msg }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" id="bookingForm">
+                {% csrf_token %}
+                <div class="form-row">
+                    <div class="field">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" name="name" placeholder="Enter your name" value="{{ name|default:'' }}" required>
+                    </div>
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" placeholder="Enter email" value="{{email|default:'' }}" required >
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="field">
+                        <label for="phone">Phone</label>
+                        <input type="tel" id="phone" name="phone" placeholder="Enter phone number" required>
+                    </div>
+                    <div class="field">
+                        <label for="date">Travel Date</label>
+                        <input type="date" id="date" name="travel_date" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="field">
+                        <label for="package">Package</label>
+                        <select id="package" name="package_slug" required>
+                            <option value="" selected disabled>-- Select Package --</option>
+
+                            {% for package in packages %}
+                                <option
+                                    value="{{ package.slug }}"
+                                    {% if package.slug == package_slug %}
+                                        selected
+                                    {% endif %}>
+                                    {{ package.package_name }} ({{ package.package_duration }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="travelers">No. of Travelers</label>
+                        <input type="number" id="travelers" min="1" name="total_travelers" value="{{travelers}}">
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="msg">Special Requests</label>
+                    <textarea id="msg" name="request" rows="4" placeholder="Food preference, guide, transport...">{{ special|default:''  }}</textarea>
+                </div>
+                    <!-- <textarea> does not have a value attribute.
+                    The text must go between the opening and closing tags. -->
+                <button type="submit" class="btn btn-primary btn-block" name="submitbtn">Confirm Booking <i class="fa-solid fa-paper-plane"></i></button>
+            </form>
+        </div>
+
+        <aside class="booking-summary-card">
+            <h3><i class="fa-solid fa-suitcase-rolling"></i> Booking Summary</h3>
+            <ul class="summary-list">
+                <li><span>Selected Package</span><strong id="summaryPackage">Not selected</strong></li>
+                <li><span>Travel Date</span><strong id="summaryDate">--</strong></li>
+                <li><span>Travelers</span><strong id="summaryTravelers">1</strong></li>
+            </ul>
+            <div class="summary-divider"></div>
+            <ul class="summary-includes">
+                <li><i class="fa-solid fa-check"></i> Local guide &amp; permits</li>
+                <li><i class="fa-solid fa-check"></i> Handpicked accommodation</li>
+                <li><i class="fa-solid fa-check"></i> 24/7 support during the trip</li>
+                <li><i class="fa-solid fa-check"></i> Transparent, no hidden pricing</li>
+            </ul>
+            <div class="summary-contact">
+                <a href="tel:+917982479183" class="btn btn-outline-dark btn-sm"><i class="fa-solid fa-phone"></i> Call Us</a>
+                <a href="https://wa.me/917982479183" target="_blank" class="btn btn-secondary btn-sm"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+            </div>
+        </aside>
+    </div>
+</section>
+{% endblock body %}
+
+{% block extra_js %}
+<script>
+// document.addEventListener("DOMContentLoaded", () => {
+//     const pkgSelect = document.getElementById("package");
+//     const dateInput = document.getElementById("date");
+//     const travelersInput = document.getElementById("travelers");
+//     const summaryPackage = document.getElementById("summaryPackage");
+//     const summaryDate = document.getElementById("summaryDate");
+//     const summaryTravelers = document.getElementById("summaryTravelers");
+
+//     pkgSelect && pkgSelect.addEventListener("change", () => {
+//         const selected = pkgSelect.options[pkgSelect.selectedIndex];
+//         summaryPackage.textContent = selected && selected.value ? selected.textContent : "Not selected";
+//     });
+//     dateInput && dateInput.addEventListener("change", () => {
+//         summaryDate.textContent = dateInput.value || "--";
+//     });
+//     travelersInput && travelersInput.addEventListener("input", () => {
+//         summaryTravelers.textContent = travelersInput.value || 1;
+//     });
+// });
+document.addEventListener("DOMContentLoaded", () => {
+
+    const pkgSelect = document.getElementById("package");
+    const dateInput = document.getElementById("date");
+    const travelersInput = document.getElementById("travelers");
+
+    const summaryPackage = document.getElementById("summaryPackage");
+    const summaryDate = document.getElementById("summaryDate");
+    const summaryTravelers = document.getElementById("summaryTravelers");
+
+    function updateSummary() {
+
+        // Package
+        if (pkgSelect) {
+            const selected = pkgSelect.options[pkgSelect.selectedIndex];
+            summaryPackage.textContent =
+                selected && selected.value
+                    ? selected.textContent
+                    : "Not selected";
+        }
+
+        // Date
+        if (dateInput) {
+            summaryDate.textContent = dateInput.value || "--";
+        }
+
+        // Travelers
+        if (travelersInput) {
+            summaryTravelers.textContent = travelersInput.value || "1";
+        }
+    }
+
+    // Event Listeners
+    if (pkgSelect) {
+        pkgSelect.addEventListener("change", updateSummary);
+    }
+
+    if (dateInput) {
+        dateInput.addEventListener("change", updateSummary);
+    }
+
+    if (travelersInput) {
+        travelersInput.addEventListener("input", updateSummary);
+    }
+
+    // Update summary immediately when page loads
+    updateSummary();
+
+});
+</script>
+{% endblock extra_js %}

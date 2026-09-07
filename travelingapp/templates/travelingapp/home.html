@@ -1,0 +1,18 @@
+{% extends 'travelingapp/base.html' %}
+{% load static %}
+{% block page_id %}Home{% endblock page_id %}
+{% block header_mode%}is-transparent{% endblock header_mode%}
+
+{% block body %}
+{% include 'travelingapp/partials/hero.html' %}
+{% include 'travelingapp/partials/stats.html' %}
+{% include 'travelingapp/partials/tours.html' %}
+{% include 'travelingapp/partials/why_choose.html' %}
+{% include 'travelingapp/partials/hotel.html' %}
+{% include 'travelingapp/partials/transport.html' %}
+{% include 'travelingapp/partials/mission.html' %}
+{% include 'travelingapp/partials/testimonials.html' %}
+{% include 'travelingapp/partials/gallery.html' %}
+{% include 'travelingapp/partials/cta.html' %}
+{% include 'travelingapp/partials/contact.html' %}
+{% endblock body %}

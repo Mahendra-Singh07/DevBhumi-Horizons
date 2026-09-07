@@ -1,0 +1,62 @@
+/* ---------- Page hero (used by Packages / Destinations / About) ---------- */
+.page-hero {
+  position: relative;
+  height: 46vh;
+  min-height: 340px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+.page-hero-media {
+  position: absolute;
+  inset: 0;
+}
+.page-hero-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.page-hero .hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--gradient-overlay);
+}
+.page-hero-content {
+  position: relative;
+  z-index: 2;
+  color: #fff;
+  padding-bottom: 54px;
+}
+.page-hero-content .badge {
+  margin-bottom: 14px;
+}
+.page-hero-content h1 {
+  color: #fff;
+  font-size: clamp(2rem, 4vw, 3rem);
+  margin-bottom: 10px;
+}
+.page-hero-content p {
+  color: #eef1ea;
+  max-width: 560px;
+}
+
+/* ---------- Packages page regions ---------- */
+.main-body .famous-section {
+  margin-bottom: 60px;
+}
+.region-heading {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.region-heading h2 {
+  font-size: 1.6rem;
+  white-space: nowrap;
+}
+.region-heading::after {
+  content: "";
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-border), transparent);
+}

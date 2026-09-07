@@ -1,0 +1,264 @@
+{% extends 'travelingapp/base.html' %}
+{% load static %}
+{% block title %}Char Dham Yatra{% endblock title %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'travelingapp/css/traveling-view-detail.css' %}">
+{% endblock extra_css %}
+{% block body %}
+<section class="detail-hero">
+    <div class="detail-hero-media">
+        <img src="{% static 'travelingapp/image/Chardham-Yatra.webp' %}" alt="Char Dham Yatra">
+        <div class="hero-overlay"></div>
+    </div>
+    <div class="container detail-hero-content">
+        <span class="badge">Spiritual Himalayan Journey | Garhwal Region</span>
+        <h1>Char Dham Yatra</h1>
+        <p>Embark on the ultimate spiritual journey through the four sacred shrines of Uttarakhand — Kedarnath, Badrinath, Gangotri, and Yamunotri — with our specially curated Char Dham Yatra Package.</p>
+        <div class="detail-hero-footer">
+            <span class="detail-hero-price">&#8377;50,400 <small>/ person</small></span>
+            <a href="{% url 'booking' %}" class="btn btn-secondary">Book Now <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+    </div>
+</section>
+
+<section class="detail-and-booking-section section">
+    <div class="container detail-layout">
+        <div class="detail-container">
+            <h2>Char Dham Yatra (11N/12D)</h2>
+            <p class="tagline">Spiritual Himalayan Journey | Garhwal Region</p>
+
+            <div class="fact-strip">
+                    <div class="fact-item"><i class="fa-solid fa-calendar-days"></i><span>12 Days / 11 Nights</span></div>
+                    <div class="fact-item"><i class="fa-solid fa-signal"></i><span>Moderate</span></div>
+                    <div class="fact-item"><i class="fa-solid fa-user-group"></i><span>6-15 People</span></div>
+                    <div class="fact-item"><i class="fa-solid fa-sun"></i><span>May - October</span></div>
+            </div>
+
+            <div class="detail-box">
+                <h3><i class="fa-solid fa-location-dot"></i> Location</h3>
+                <ul>
+                    <li>Region: Garhwal, Uttarakhand</li>
+                    <li>Shrines: Yamunotri, Gangotri, Kedarnath, Badrinath</li>
+                    <li>Starting Point: Delhi</li>
+                    <li>Ending Point: Rishikesh</li>
+                </ul>
+            </div>
+
+            <div class="detail-box">
+                <h3><i class="fa-solid fa-route"></i> Day-wise Itinerary</h3>
+                <div class="itinerary-timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker">1</div>
+                        <div class="timeline-content">
+                            <h4>Day 1 &mdash; Delhi to Haridwar</h4>
+                            <ul><li>Morning departure from Delhi by AC vehicle</li><li>Scenic drive via Meerut, Muzaffarnagar</li><li>Evening Ganga Aarti at Har Ki Pauri</li><li>Overnight stay in Haridwar</li></ul>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker">2</div>
+                        <div class="timeline-content">
+                            <h4>Day 2 &mdash; Haridwar to Barkot</h4>
+                            <ul><li>Drive through Dehradun &amp; Mussoorie</li><li>Stop at Kempty Falls (optional)</li><li>Reach Barkot by evening</li><li>Dinner &amp; rest at hotel</li></ul>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker">3</div>
+                        <div class="timeline-content">
+                            <h4>Day 3 &mdash; Yamunotri Temple Trek</h4>
+                            <ul><li>Early morning drive to Janki Chatti</li><li>6 km trek to Yamunotri Temple</li><li>Darshan &amp; holy dip in Yamuna Kund</li><li>Return trek &amp; drive back to Barkot</li></ul>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker">4</div>
+                        <div class="timeline-content">
+                            <h4>Day 4 &mdash; Barkot to Uttarkashi</h4>
+                            <ul><li>Drive along Bhagirathi River</li><li>Visit Vishwanath Temple in Uttarkashi</li><li>Check-in at hotel, rest &amp; dinner</li></ul>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker">5</div>
+                        <div class="timeline-content">
+                            <h4>Day 5 &mdash; Gangotri Temple Visit</h4>
+                            <ul><li>Early morning drive to Gangotri</li><li>Darshan at origin of River Ganga</li><li>Visit Bhagirath Shila &amp; Gauri Kund</li><li>Return to Uttarkashi by evening</li></ul>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker">6</div>
+                        <div class="timeline-content">
+                            <h4>Day 6 &mdash; Uttarkashi to Guptkashi</h4>
+                            <ul><li>Long scenic drive via Tehri Dam</li><li>Lunch en route, photo stops</li><li>Reach Guptkashi by night</li></ul>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker">7</div>
+                        <div class="timeline-content">
+                            <h4>Day 7 &mdash; Kedarnath Trek</h4>
+                            <ul><li>Drive to Sonprayag, then Gaurikund</li><li>18 km trek to Kedarnath Temple</li><li>Darshan &amp; overnight stay near temple</li></ul>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker">8</div>
+                        <div class="timeline-content">
+                            <h4>Day 8 &mdash; Kedarnath to Guptkashi</h4>
+                            <ul><li>Return trek to Gaurikund</li><li>Drive back to Guptkashi</li><li>Rest &amp; recovery day</li></ul>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker">9</div>
+                        <div class="timeline-content">
+                            <h4>Day 9 &mdash; Guptkashi to Badrinath</h4>
+                            <ul><li>Drive via Chopta &amp; Joshimath</li><li>Visit Narsingh Temple en route</li><li>Evening darshan at Badrinath Temple</li></ul>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker">10</div>
+                        <div class="timeline-content">
+                            <h4>Day 10 &mdash; Badrinath to Joshimath</h4>
+                            <ul><li>Morning visit to Mana Village</li><li>Drive to Joshimath</li><li>Local sightseeing &amp; rest</li></ul>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker">11</div>
+                        <div class="timeline-content">
+                            <h4>Day 11 &mdash; Joshimath to Rishikesh</h4>
+                            <ul><li>Drive via Rudraprayag &amp; Devprayag</li><li>Evening visit to Ram Jhula &amp; Laxman Jhula</li><li>Overnight stay in Rishikesh</li></ul>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker">12</div>
+                        <div class="timeline-content">
+                            <h4>Day 12 &mdash; Rishikesh to Delhi</h4>
+                            <ul><li>Breakfast &amp; checkout</li><li>Return journey to Delhi</li><li>Tour ends with blessings &amp; memories</li></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-box">
+                <h3><i class="fa-solid fa-utensils"></i> Food &amp; Stay</h3>
+                <ul>
+                    <li>Stay: Hotels / Camps / Dharamshalas</li>
+                    <li>Meals: Breakfast, Lunch &amp; Dinner included</li>
+                    <li>Special Meals: Satvik / Jain on request</li>
+                </ul>
+            </div>
+
+            <div class="detail-box">
+                <h3><i class="fa-solid fa-car"></i> Travel &amp; Driver</h3>
+                <ul>
+                    <li>Vehicle: Tempo Traveller / SUV</li>
+                    <li>Driver Charges: &#8377;1,200/day &times; 12 days = &#8377;14,400</li>
+                    <li>Driver Add-on: Optional (visible during booking)</li>
+                </ul>
+            </div>
+
+            <div class="detail-box">
+                <h3><i class="fa-solid fa-indian-rupee-sign"></i> Pricing Breakdown</h3>
+                <table class="pricing-table">
+                    <tr><th>Items</th><th>Cost (INR)</th></tr>
+                        <tr><td>Base Tour Cost</td><td>&#8377;30,000</td></tr>
+                        <tr><td>Our commission (20%)</td><td>&#8377;6,000</td></tr>
+                        <tr><td>Final Price (without driver)</td><td>&#8377;36,000</td></tr>
+                        <tr><td>Driver Add-on (12 Days)</td><td>&#8377;14,400</td></tr>
+                        <tr><td>Total with Driver</td><td>&#8377;50,400</td></tr>
+                </table>
+            </div>
+
+            <div class="detail-box inclusions-exclusions">
+                <div class="inc-col">
+                    <h3><i class="fa-solid fa-circle-check"></i> Inclusions</h3>
+                    <ul class="check-list">
+                        <li><i class="fa-solid fa-check"></i> Accommodation</li>
+                        <li><i class="fa-solid fa-check"></i> Meals (Breakfast + Dinner)</li>
+                        <li><i class="fa-solid fa-check"></i> Temple entry &amp; trek permits</li>
+                        <li><i class="fa-solid fa-check"></i> Local guide &amp; support</li>
+                        <li><i class="fa-solid fa-check"></i> Emergency medical kit</li>
+                    </ul>
+                </div>
+                <div class="exc-col">
+                    <h3><i class="fa-solid fa-circle-xmark"></i> Exclusions</h3>
+                    <ul class="cross-list">
+                        <li><i class="fa-solid fa-xmark"></i> Personal snacks &amp; lunch</li>
+                        <li><i class="fa-solid fa-xmark"></i> Pony / Palki charges</li>
+                        <li><i class="fa-solid fa-xmark"></i> Insurance &amp; medical expenses</li>
+                        <li><i class="fa-solid fa-xmark"></i> Tips &amp; donations</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="detail-box">
+                <h3><i class="fa-solid fa-star"></i> Highlights</h3>
+                <ul>
+                    <li>Complete Char Dham circuit</li>
+                    <li>Himalayan temples + scenic drives</li>
+                    <li>Optional Auli &amp; Valley of Flowers add-on</li>
+                    <li>Transparent pricing with commission breakdown</li>
+                </ul>
+            </div>
+
+            <div class="detail-box">
+                <h3><i class="fa-solid fa-images"></i> Photo Gallery</h3>
+                <div class="detail-gallery">
+                    <div class="detail-gallery-item"><img src="{% static 'travelingapp/image/BADRINATH.jpg' %}" alt="BADRINATH.jpg"></div>
+                    <div class="detail-gallery-item"><img src="{% static 'travelingapp/image/GANGOTRI.jpg' %}" alt="GANGOTRI.jpg"></div>
+                    <div class="detail-gallery-item"><img src="{% static 'travelingapp/image/YAMUNOTRI.jpg' %}" alt="YAMUNOTRI.jpg"></div>
+                    <div class="detail-gallery-item"><img src="{% static 'travelingapp/image/Kedarnath_Temple.jpg' %}" alt="Kedarnath_Temple.jpg"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="booking-container">
+            <h2>Book This Package</h2>
+            <p class="booking-note">Reserve your spot &mdash; our team will confirm your booking within 24 hours.</p>
+            <form action="{% url 'booking' %}" method="get">
+                <input type="text" placeholder="Your Name" name="name" >
+                <input type="email" placeholder="Your Email"  name="email">
+                <input type="number" min="1" value="1" name="total_travelers" >
+                <textarea placeholder="Special Requests" name="request"></textarea>
+                <input type="hidden" name="package_id" value="1">
+                <!-- <a href="{% url 'booking' %}" class="btn btn-primary btn-block">Continue to Booking <i class="fa-solid fa-arrow-right"></i></a> -->
+                <button type="submit" class="btn btn-primary btn-block">Continue to Booking <i class="fa-solid fa-arrow-right"></i></button>
+            </form>
+            <div class="booking-contact-row">
+                <a href="tel:+917982479183" class="btn btn-outline-dark btn-sm"><i class="fa-solid fa-phone"></i> Call</a>
+                <a href="https://wa.me/917982479183" target="_blank" class="btn btn-secondary btn-sm"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container related-packages">
+        <div class="section-heading">
+            <span class="eyebrow">You May Also Like</span>
+            <h2>Related Packages</h2>
+        </div>
+        <div class="package-container">
+            <div class="package-card">
+                <div class="package-img">
+                    <img src="{% static 'travelingapp/image/Kedarnath_Temple.jpg' %}" alt="Kedarkantha Trek">
+                </div>
+                <div class="package-body">
+                    <h3>Kedarkantha Trek</h3>
+                    <p class="package-meta"><i class="fa-solid fa-clock"></i> 4 Days</p>
+                    <div class="package-footer">
+                        <span class="price">&#8377;17,400 <small>/person</small></span>
+                        <a href="{% url 'view1' %}" class="btn btn-outline-dark btn-sm">View Details</a>
+                    </div>
+                </div>
+            </div>
+            <div class="package-card">
+                <div class="package-img">
+                    <img src="{% static 'travelingapp/image/VALLEY-OF-FLOWERS.jpg' %}" alt="Valley of Flowers">
+                </div>
+                <div class="package-body">
+                    <h3>Valley of Flowers</h3>
+                    <p class="package-meta"><i class="fa-solid fa-clock"></i> 6 Days</p>
+                    <div class="package-footer">
+                        <span class="price">&#8377;19,200 <small>/person</small></span>
+                        <a href="{% url 'view3' %}" class="btn btn-outline-dark btn-sm">View Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock body %}

@@ -1,0 +1,87 @@
+{% extends 'travelingapp/base.html' %}
+{% load static %}
+{% block title %}About Us{% endblock title %}
+{% block header_mode %}is-transparent{% endblock header_mode %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'travelingapp/css/explore-treks.css' %}">
+<link rel="stylesheet" href="{% static 'travelingapp/css/about.css' %}">
+{% endblock extra_css %}
+{% block body %}
+<section class="page-hero">
+    <div class="page-hero-media">
+        <img src="{% static 'travelingapp/image/Guptkashi.png' %}" alt="About DevBhumi Horizons">
+        <div class="hero-overlay"></div>
+    </div>
+    <div class="container page-hero-content">
+        <span class="badge">About Us</span>
+        <h1>Our Story, Our Himalayas</h1>
+        <p>Born in the hills of Uttarakhand, built for travelers who want more than a checklist.</p>
+    </div>
+</section>
+
+<section class="section story-section">
+    <div class="container story-grid">
+        <div class="story-image">
+            <img src="{% static 'travelingapp/image/Kausani.webp' %}" class="image1" alt="Kausani landscape">
+            <img src="{% static 'travelingapp/image/mukteshwar.png' %}" class="image2" alt="Mukteshwar">
+        </div>
+        <div class="story-text reveal">
+            <span class="eyebrow">Our Story</span>
+            <h2>From Local Trails to a Trusted Travel Brand</h2>
+            <p>DevBhumi Horizons started with a simple idea — the hidden corners of Uttarakhand deserved more thoughtful, honest travel experiences. What began as a handful of guided treks for friends and family has grown into a full-fledged travel company serving thousands of travelers across India and abroad.</p>
+            <p>Every itinerary we design is rooted in local knowledge, built by people who grew up on these mountains, walked these trails, and know exactly what makes a journey feel safe, soulful and unforgettable.</p>
+        </div>
+    </div>
+</section>
+
+<section class="section section-alt mission-vision-section">
+    <div class="container mv-grid">
+        <div class="mv-card reveal">
+            <div class="why-icon"><i class="fa-solid fa-bullseye"></i></div>
+            <h3>Our Mission</h3>
+            <p>To craft safe, affordable, and memorable journeys across Uttarakhand while promoting sustainable, community-first tourism.</p>
+        </div>
+        <div class="mv-card reveal reveal-delay-1">
+            <div class="why-icon"><i class="fa-solid fa-eye"></i></div>
+            <h3>Our Vision</h3>
+            <p>To become the most trusted gateway for travelers seeking the authentic soul of the Himalayas — one honest trip at a time.</p>
+        </div>
+        <div class="mv-card reveal reveal-delay-2">
+            <div class="why-icon"><i class="fa-solid fa-heart"></i></div>
+            <h3>Our Values</h3>
+            <p>Transparency, local partnership, safety-first planning, and genuine care for every traveler who joins us.</p>
+        </div>
+    </div>
+</section>
+
+{% include 'travelingapp/partials/why_choose.html' %}
+{% include 'travelingapp/partials/stats.html' %}
+
+<section class="section team-section">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">The People Behind Your Trip</span>
+            <h2>Meet Our Team</h2>
+        </div>
+        <div class="team-grid">
+            <div class="team-card reveal">
+                <img src="{% static 'travelingapp/image/Madara_Thakur.jpg' %}" alt="Founder">
+                <h4>Madara Thakur</h4>
+                <span>Founder &amp; Lead Trek Guide</span>
+            </div>
+            <div class="team-card reveal reveal-delay-1">
+                <img src="{% static 'travelingapp/image/motherOfDragon.webp' %}" alt="Operations Lead">
+                <h4>Daenerys Rawat</h4>
+                <span>Operations &amp; Guest Experience</span>
+            </div>
+            <div class="team-card reveal reveal-delay-2">
+                <img src="{% static 'travelingapp/image/Shocy_sharma.jpg' %}" alt="Local Guide Coordinator">
+                <h4>Shocy Negi</h4>
+                <span>Local Guide Coordinator</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% include 'travelingapp/partials/cta.html' %}
+{% endblock body %}

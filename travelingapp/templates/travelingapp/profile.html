@@ -1,0 +1,120 @@
+{% extends 'travelingapp/base.html' %}
+{% load static %}
+{% block page_id %}Profile{% endblock page_id %}
+{% block title %}My Profile{% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'travelingapp/css/profile.css' %}">
+{% endblock extra_css %}
+
+{% block body %}
+<section class="profile-page">
+  <div class="container">
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="newsletter-message {{ message.tags }}" style="margin-bottom: 20px;">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- ONE form for everything — name, phone, address, DOB, and the photo.
+         Nothing gets saved until "Save changes" is clicked, so selecting a
+         photo can never wipe out the other fields (and vice versa). -->
+    <form method="POST" enctype="multipart/form-data" action="{% url 'profile' %}">
+      {% csrf_token %}
+
+      <div class="profile-layout">
+
+        <div class="profile-card">
+          <div class="profile-avatar-wrap">
+            <div class="profile-avatar" id="avatarPreview">
+              {% if profile.profile_picture %}
+                <img src="{{ profile.profile_picture.url }}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+              {% else %}
+                <span id="avatarInitials">{{ profile.initials }}</span>
+              {% endif %}
+            </div>
+            <label class="profile-avatar-edit" for="avatarInput">
+              <i class="fa-solid fa-camera"></i>
+            </label>
+            <input type="file" id="avatarInput" name="profile_picture" accept="image/*" hidden>
+          </div>
+          <p class="profile-field-hint" id="avatarHint" style="margin-bottom:14px;"></p>
+
+          <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+          <p class="profile-email-muted">{{ user.email }}</p>
+
+          <div class="profile-nav">
+            <a href="{% url 'profile' %}" class="active"><i class="fa-solid fa-user"></i> My Profile</a>
+            <a href="{% url 'my_bookings' %}"><i class="fa-solid fa-suitcase"></i> My Bookings</a>
+            <a href="#" class="danger js-logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+          </div>
+        </div>
+
+        <div class="profile-form-card">
+          <h2>Profile details</h2>
+          <p class="profile-subtitle">Update your personal information</p>
+
+          <div class="profile-form-row">
+            <div class="profile-field">
+              <label for="firstName">First name</label>
+              <input type="text" id="firstName" name="first_name" value="{{ user.first_name }}" required>
+            </div>
+            <div class="profile-field">
+              <label for="lastName">Last name</label>
+              <input type="text" id="lastName" name="last_name" value="{{ user.last_name }}" required>
+            </div>
+          </div>
+
+          <div class="profile-field">
+            <label for="profileEmail">Email</label>
+            <input type="email" id="profileEmail" value="{{ user.email }}" disabled>
+            <p class="profile-field-hint">Email can't be changed since it's used to log in.</p>
+          </div>
+
+          <div class="profile-form-row">
+            <div class="profile-field">
+              <label for="profilePhone">Phone</label>
+              <input type="text" id="profilePhone" name="phone" value="{{ profile.phone }}" placeholder="+91 98765 43210">
+            </div>
+            <div class="profile-field">
+              <label for="profileDob">Date of birth</label>
+              <input type="date" id="profileDob" name="date_of_birth" value="{{ profile.date_of_birth|date:'Y-m-d' }}">
+            </div>
+          </div>
+
+          <div class="profile-field">
+            <label for="profileAddress">Address</label>
+            <textarea id="profileAddress" name="address" rows="3" placeholder="Your address">{{ profile.address }}</textarea>
+          </div>
+
+          <div class="profile-form-actions">
+            <a href="{% url 'home' %}" class="btn btn-outline-dark">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save changes</button>
+          </div>
+        </div>
+
+      </div>
+    </form>
+
+  </div>
+</section>
+
+<script>
+  // Instant preview when a photo is picked — no submit happens here,
+  // the file just rides along inside the same form until "Save changes".
+  document.getElementById("avatarInput").addEventListener("change", function () {
+    const file = this.files[0];
+    const hint = document.getElementById("avatarHint");
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      document.getElementById("avatarPreview").innerHTML =
+        `<img src="${e.target.result}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+    };
+    reader.readAsDataURL(file);
+    hint.textContent = "New photo selected — click \"Save changes\" to apply.";
+  });
+</script>
+{% endblock body %}

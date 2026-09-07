@@ -1,0 +1,56 @@
+{% load static %}
+<section class="contact-section section" id="contact-section">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">Reach Out</span>
+            <h2>Plan Your Trip With Us</h2>
+            <p>Questions about a package or route? Send us a message and we'll respond within a day.</p>
+        </div>
+
+        <div class="contact-grid">
+            <form class="contact-form" id="contactForm">
+                <div class="form-row">
+                    <input type="text" id="name" placeholder="Your Name" required>
+                    <input type="email" id="email" placeholder="Your Email" required>
+                </div>
+                <input type="text" id="subject" placeholder="Subject">
+                <textarea id="message" rows="5" placeholder="Tell us about your dream trip..."></textarea>
+                <button type="submit" class="btn btn-primary btn-block">Send Message</button>
+            </form>
+
+            <div class="contact-info-panel">
+                <div class="contact-info-item">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <div><strong>Office</strong><span>Village-palla, Faridabad, Haryana 121003</span></div>
+                </div>
+                <div class="contact-info-item">
+                    <i class="fa-solid fa-phone-volume"></i>
+                    <div><strong>Call Us</strong><span>+91 7982478183</span></div>
+                </div>
+                <div class="contact-info-item">
+                    <i class="fa-solid fa-envelope"></i>
+                    <div><strong>Email</strong><span>devbhumi@gmail.com</span></div>
+                </div>
+                <div class="map-embed">
+                    <iframe src="https://www.google.com/maps?q=Uttarakhand,India&output=embed" width="100%" height="220" style="border:0; border-radius: var(--radius-md);" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Map"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-block">
+            <h3>Frequently Asked Questions</h3>
+            <details class="faq-item" open>
+                <summary>How do I book a trek or package?</summary>
+                <p>Choose a package from our Packages page and fill out the booking form — our team confirms availability within 24 hours.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Are guides and permits included?</summary>
+                <p>Yes, local guides, temple/trek permits and safety support are included in every package unless noted otherwise.</p>
+            </details>
+            <details class="faq-item">
+                <summary>What is your cancellation policy?</summary>
+                <p>Full refunds are available up to 7 days before departure. Contact our support team for special circumstances.</p>
+            </details>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,170 @@
+{% load static %}
+<!-- ============ Auth Modal (Login / Sign Up) ============ -->
+<div class="auth-modal-overlay" id="authModalOverlay">
+  <div class="auth-modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+
+    <button type="button" class="auth-modal-close" id="authModalClose" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <!-- ---------- LOGIN ---------- -->
+    <div class="auth-modal-body" id="authBodyLogin">
+      <div class="auth-pane auth-pane-form">
+        <h2 id="authModalTitle">Welcome Back!</h2>
+        <p class="auth-subtitle">Login to continue your journey</p>
+
+        <form id="loginForm" novalidate>
+          {% csrf_token %}
+
+          <div class="auth-field">
+            <label for="loginEmail">Email</label>
+            <div class="auth-input">
+              <i class="fa-solid fa-envelope"></i>
+              <input type="email" id="loginEmail" name="email" placeholder="Enter your email" autocomplete="email" required>
+            </div>
+          </div>
+
+          <div class="auth-field">
+            <label for="loginPassword">Password</label>
+            <div class="auth-input">
+              <i class="fa-solid fa-lock"></i>
+              <input type="password" id="loginPassword" name="password" placeholder="Enter your password" autocomplete="current-password" required>
+              <button type="button" class="auth-toggle-pass" data-target="loginPassword" aria-label="Show password">
+                <i class="fa-solid fa-eye-slash"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="auth-forgot">
+            <a href="#">Forgot Password?</a>
+          </div>
+
+          <button type="submit" class="btn btn-primary auth-submit">Login</button>
+
+          <div class="auth-divider"><span>or</span></div>
+
+          <button type="button" class="auth-google-btn">
+            <i class="fa-brands fa-google"></i> Continue with Google
+          </button>
+        </form>
+      </div>
+
+      <div class="auth-modal-divider" aria-hidden="true"></div>
+
+      <div class="auth-pane auth-pane-switch">
+        <span class="auth-switch-icon"><i class="fa-solid fa-user"></i></span>
+        <h3>New here?</h3>
+        <p>Create an account and start exploring Uttarakhand.</p>
+        <button type="button" class="btn btn-outline auth-switch-btn" id="showSignupBtn">Sign Up</button>
+      </div>
+    </div>
+
+    <!-- ---------- SIGN UP ---------- -->
+    <div class="auth-modal-body" id="authBodySignup" hidden>
+      <div class="auth-pane auth-pane-form">
+        <h2>Create Account</h2>
+        <p class="auth-subtitle">Join us and start exploring Uttarakhand</p>
+
+        <form id="signupForm" novalidate>
+          {% csrf_token %}
+
+          <div class="auth-field">
+            <label for="signupFirstName">First Name</label>
+            <div class="auth-input">
+              <i class="fa-solid fa-user"></i>
+              <input type="text" id="signupFirstName" name="firstName" placeholder="Enter your first name" autocomplete="given-name" required>
+            </div>
+          </div>
+
+          <div class="auth-field">
+            <label for="signupLastName">Last Name</label>
+            <div class="auth-input">
+              <i class="fa-solid fa-user"></i>
+              <input type="text" id="signupLastName" name="lastName" placeholder="Enter your last name" autocomplete="family-name" required>
+            </div>
+          </div>
+
+          <div class="auth-field">
+            <label for="signupEmail">Email</label>
+            <div class="auth-input">
+              <i class="fa-solid fa-envelope"></i>
+              <input type="email" id="signupEmail" name="email" placeholder="Enter your email" autocomplete="email" required>
+            </div>
+          </div>
+
+          <div class="auth-field">
+            <label for="signupPassword">Password</label>
+            <div class="auth-input">
+              <i class="fa-solid fa-lock"></i>
+              <input type="password" id="signupPassword" name="password" placeholder="Create a password" autocomplete="new-password" required>
+              <button type="button" class="auth-toggle-pass" data-target="signupPassword" aria-label="Show password">
+                <i class="fa-solid fa-eye-slash"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="auth-field">
+            <label for="signupConfirmPassword">Confirm Password</label>
+            <div class="auth-input">
+              <i class="fa-solid fa-lock"></i>
+              <input type="password" id="signupConfirmPassword" name="confirmPassword" placeholder="Confirm your password" autocomplete="new-password" required>
+              <button type="button" class="auth-toggle-pass" data-target="signupConfirmPassword" aria-label="Show password">
+                <i class="fa-solid fa-eye-slash"></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary auth-submit">Create Account</button>
+
+          <div class="auth-divider"><span>or</span></div>
+
+          <button type="button" class="auth-google-btn">
+            <i class="fa-brands fa-google"></i> Continue with Google
+          </button>
+        </form>
+      </div>
+
+      <div class="auth-modal-divider" aria-hidden="true"></div>
+
+      <div class="auth-pane auth-pane-switch">
+        <span class="auth-switch-icon"><i class="fa-solid fa-right-to-bracket"></i></span>
+        <h3>Already a member?</h3>
+        <p>Login to continue planning your Himalayan journey.</p>
+        <button type="button" class="btn btn-outline auth-switch-btn" id="showLoginBtn">Login</button>
+      </div>
+    </div>
+
+    <!-- ---------- OTP VERIFICATION ---------- -->
+    <div class="auth-modal-body auth-modal-body-otp" id="authBodyOtp" hidden>
+      <div class="auth-pane auth-pane-form auth-pane-otp">
+        <h2>Verify your email</h2>
+        <p class="auth-subtitle">
+          We've sent a 6-digit code to <strong id="otpEmailDisplay"></strong>
+        </p>
+
+        <form id="otpForm" novalidate>
+          {% csrf_token %}
+
+          <div class="otp-inputs" id="otpInputs">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-otp-index="0" autocomplete="one-time-code">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-otp-index="1">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-otp-index="2">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-otp-index="3">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-otp-index="4">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-otp-index="5">
+          </div>
+
+          <p class="auth-otp-error" id="otpError" hidden></p>
+
+          <button type="submit" class="btn btn-primary auth-submit">Verify</button>
+
+          <p class="auth-resend">
+            Didn't receive the code?
+            <button type="button" id="resendOtpBtn">Resend OTP</button>
+          </p>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>

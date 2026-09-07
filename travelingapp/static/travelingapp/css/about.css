@@ -1,0 +1,113 @@
+.story-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 50px;
+  align-items: center;
+}
+.story-image {
+  position: relative;
+  height: 420px;
+}
+.story-image img {
+  position: absolute;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  object-fit: cover;
+}
+.story-image .image1 {
+  width: 75%;
+  height: 80%;
+  top: 0;
+  left: 0;
+}
+.story-image .image2 {
+  width: 55%;
+  height: 55%;
+  bottom: 0;
+  right: 0;
+  border: 6px solid var(--color-bg);
+}
+.story-text h2 {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  margin: 12px 0 16px;
+}
+.story-text p {
+  color: var(--color-text-muted);
+  margin-bottom: 14px;
+}
+@media (max-width: 900px) {
+  .story-grid {
+    grid-template-columns: 1fr;
+  }
+  .story-image {
+    height: 320px;
+    order: -1;
+  }
+}
+
+.mv-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 26px;
+}
+.mv-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 34px 28px;
+  text-align: center;
+  box-shadow: var(--shadow-soft);
+  transition: var(--transition);
+}
+.mv-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-card);
+}
+.mv-card .why-icon {
+  margin: 0 auto 16px;
+}
+.mv-card h3 {
+  margin-bottom: 10px;
+}
+.mv-card p {
+  color: var(--color-text-muted);
+  font-size: 0.94rem;
+}
+@media (max-width: 780px) {
+  .mv-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 28px;
+}
+.team-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 30px;
+  text-align: center;
+  box-shadow: var(--shadow-soft);
+  transition: var(--transition);
+}
+.team-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-card);
+}
+.team-card img {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 16px;
+  border: 4px solid var(--color-bg);
+  box-shadow: var(--shadow-soft);
+}
+.team-card h4 {
+  margin-bottom: 4px;
+}
+.team-card span {
+  color: var(--color-text-muted);
+  font-size: 0.86rem;
+}

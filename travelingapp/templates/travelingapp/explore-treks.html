@@ -1,0 +1,315 @@
+{% extends 'travelingapp/base.html' %}
+{% load static %}
+{% block title %}Packages{% endblock title %}
+{% block header_mode %}is-transparent{% endblock header_mode %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'travelingapp/css/explore-treks.css' %}">
+{% endblock extra_css%}
+{% block body %}
+<section class="page-hero">
+    <div class="page-hero-media">
+        <img src="{% static 'travelingapp/image/CHOPTA.jpg' %}" alt="Uttarakhand treks">
+        <div class="hero-overlay"></div>
+    </div>
+    <div class="container page-hero-content">
+        <span class="badge">Packages</span>
+        <h1>Explore Treks With Us</h1>
+        <p>From sacred temples to alpine meadows — find the journey that calls to you.</p>
+    </div>
+</section>
+
+<main class="main-body section">
+    <div class="container">
+        <section class="famous-section garhwal">
+            <div class="region-heading">
+                <h2>Garhwal Region</h2>
+            </div>
+            <div class="package-container">
+                <div class="package-card">
+                    <div class="package-img">
+                        <img src="{% static 'travelingapp/image/Kedarnath_Temple.jpg' %}" alt="Kedarkantha Trek">
+                    </div>
+                    <div class="package-body">
+                        <div class="rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.6</div>
+                        <h3>Kedarkantha Trek</h3>
+                        <p class="package-meta"><i class="fa-solid fa-clock"></i> 4 Days &nbsp;|&nbsp; <i class="fa-solid fa-signal"></i> Moderate</p>
+                        <div class="package-footer">
+                            <span class="price">&#8377;17,400 <small>/person</small></span>
+                            <a href="{% url 'package_detail' 'kedarnath-trek'  %}" class="btn btn-outline-dark btn-sm">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="package-card">
+                    <div class="package-img">
+                        <img src="{% static 'travelingapp/image/rishikesh.jpg' %}" alt="Rishikesh">
+                    </div>
+                    <div class="package-body">
+                        <div class="rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.6</div>
+                        <h3>Rishikesh</h3>
+                        <p class="package-meta"><i class="fa-solid fa-clock"></i> 3 Days &nbsp;|&nbsp; <i class="fa-solid fa-signal"></i> Easy</p>
+                        <div class="package-footer">
+                            <span class="price">&#8377;11,640 <small>/person</small></span>
+                            <a href="{% url 'booking' %}" class="btn btn-outline-dark btn-sm">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="package-card">
+                    <div class="package-img">
+                        <img src="{% static 'travelingapp/image/MUSSOORIE.jpg' %}" alt="Mussoorie">
+                    </div>
+                    <div class="package-body">
+                        <div class="rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.6</div>
+                        <h3>Mussoorie</h3>
+                        <p class="package-meta"><i class="fa-solid fa-clock"></i> 3 Days &nbsp;|&nbsp; <i class="fa-solid fa-signal"></i> Easy</p>
+                        <div class="package-footer">
+                            <span class="price">&#8377;11,400 <small>/person</small></span>
+                            <a href="{% url 'booking' %}" class="btn btn-outline-dark btn-sm">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="package-card">
+                    <div class="package-img">
+                        <img src="{% static 'travelingapp/image/DEHRADUN.jpg' %}" alt="Dehradun">
+                    </div>
+                    <div class="package-body">
+                        <div class="rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.6</div>
+                        <h3>Dehradun</h3>
+                        <p class="package-meta"><i class="fa-solid fa-clock"></i> 2 Days &nbsp;|&nbsp; <i class="fa-solid fa-signal"></i> Easy</p>
+                        <div class="package-footer">
+                            <span class="price">&#8377;8,640 <small>/person</small></span>
+                            <a href="{% url 'booking' %}" class="btn btn-outline-dark btn-sm">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="package-card">
+                    <div class="package-img">
+                        <img src="{% static 'travelingapp/image/HARIDWAR.jpg' %}" alt="Haridwar">
+                    </div>
+                    <div class="package-body">
+                        <div class="rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.6</div>
+                        <h3>Haridwar</h3>
+                        <p class="package-meta"><i class="fa-solid fa-clock"></i> 2 Days &nbsp;|&nbsp; <i class="fa-solid fa-signal"></i> Easy</p>
+                        <div class="package-footer">
+                            <span class="price">&#8377;31,000 <small>/person</small></span>
+                            <a href="{% url 'booking' %}" class="btn btn-outline-dark btn-sm">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="package-card">
+                    <div class="package-img">
+                        <img src="{% static 'travelingapp/image/CHOPTA.jpg' %}" alt="Chopta">
+                    </div>
+                    <div class="package-body">
+                        <div class="rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.6</div>
+                        <h3>Chopta</h3>
+                        <p class="package-meta"><i class="fa-solid fa-clock"></i> 3 Days &nbsp;|&nbsp; <i class="fa-solid fa-signal"></i> Moderate</p>
+                        <div class="package-footer">
+                            <span class="price">&#8377;12,000 <small>/person</small></span>
+                            <a href="{% url 'booking' %}" class="btn btn-outline-dark btn-sm">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="package-card">
+                    <div class="package-img">
+                        <img src="{% static 'travelingapp/image/DHANAULTI.jpg' %}" alt="Dhanaulti">
+                    </div>
+                    <div class="package-body">
+                        <div class="rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.6</div>
+                        <h3>Dhanaulti</h3>
+                        <p class="package-meta"><i class="fa-solid fa-clock"></i> 2 Days &nbsp;|&nbsp; <i class="fa-solid fa-signal"></i> Easy</p>
+                        <div class="package-footer">
+                            <span class="price">&#8377;7,560 <small>/person</small></span>
+                            <a href="{% url 'booking' %}" class="btn btn-outline-dark btn-sm">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="package-card">
+                    <div class="package-img">
+                        <img src="{% static 'travelingapp/image/BADRINATH.jpg' %}" alt="Badrinath">
+                    </div>
+                    <div class="package-body">
+                        <div class="rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.6</div>
+                        <h3>Badrinath</h3>
+                        <p class="package-meta"><i class="fa-solid fa-clock"></i> 3 Days &nbsp;|&nbsp; <i class="fa-solid fa-signal"></i> Moderate</p>
+                        <div class="package-footer">
+                            <span class="price">&#8377;12,600 <small>/person</small></span>
+                            <a href="{% url 'booking' %}" class="btn btn-outline-dark btn-sm">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="famous-section kumaon">
+            <div class="region-heading">
+                <h2>Kumaon Region</h2>
+            </div>
+            <div class="package-container">
+                <div class="package-card">
+                    <div class="package-img">
+                        <img src="{% static 'travelingapp/image/ALMORA.jpg' %}" alt="Almora">
+                    </div>
+                    <div class="package-body">
+                        <div class="rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.6</div>
+                        <h3>Almora</h3>
+                        <p class="package-meta"><i class="fa-solid fa-clock"></i> 2 Days &nbsp;|&nbsp; <i class="fa-solid fa-signal"></i> Easy</p>
+                        <div class="package-footer">
+                            <span class="price">&#8377;8,640 <small>/person</small></span>
+                            <a href="{% url 'booking' %}" class="btn btn-outline-dark btn-sm">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="package-card">
+                    <div class="package-img">
+                        <img src="{% static 'travelingapp/image/NAINITAL.jpg' %}" alt="Nainital">
+                    </div>
+                    <div class="package-body">
+                        <div class="rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.6</div>
+                        <h3>Nainital</h3>
+                        <p class="package-meta"><i class="fa-solid fa-clock"></i> 3 Days &nbsp;|&nbsp; <i class="fa-solid fa-signal"></i> Easy</p>
+                        <div class="package-footer">
+                            <span class="price">&#8377;11,640 <small>/person</small></span>
+                            <a href="{% url 'booking' %}" class="btn btn-outline-dark btn-sm">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="package-card">
+                    <div class="package-img">
+                        <img src="{% static 'travelingapp/image/CORBETT-NATIONAL-PARK.jpg' %}" alt="Jim Corbett National Park">
+                    </div>
+                    <div class="package-body">
+                        <div class="rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.6</div>
+                        <h3>Jim Corbett National Park</h3>
+                        <p class="package-meta"><i class="fa-solid fa-clock"></i> 3 Days &nbsp;|&nbsp; <i class="fa-solid fa-signal"></i> Easy</p>
+                        <div class="package-footer">
+                            <span class="price">&#8377;13,800 <small>/person</small></span>
+                            <a href="{% url 'booking' %}" class="btn btn-outline-dark btn-sm">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="package-card">
+                    <div class="package-img">
+                        <img src="{% static 'travelingapp/image/RANIKHET.jpg' %}" alt="Ranikhet">
+                    </div>
+                    <div class="package-body">
+                        <div class="rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.6</div>
+                        <h3>Ranikhet</h3>
+                        <p class="package-meta"><i class="fa-solid fa-clock"></i> 2 Days &nbsp;|&nbsp; <i class="fa-solid fa-signal"></i> Easy</p>
+                        <div class="package-footer">
+                            <span class="price">&#8377;8,640 <small>/person</small></span>
+                            <a href="{% url 'booking' %}" class="btn btn-outline-dark btn-sm">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="package-card">
+                    <div class="package-img">
+                        <img src="{% static 'travelingapp/image/mukteshwar.png' %}" alt="Mukteshwar">
+                    </div>
+                    <div class="package-body">
+                        <div class="rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.6</div>
+                        <h3>Mukteshwar</h3>
+                        <p class="package-meta"><i class="fa-solid fa-clock"></i> 2 Days &nbsp;|&nbsp; <i class="fa-solid fa-signal"></i> Easy</p>
+                        <div class="package-footer">
+                            <span class="price">&#8377;9,000 <small>/person</small></span>
+                            <a href="{% url 'booking' %}" class="btn btn-outline-dark btn-sm">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="package-card">
+                    <div class="package-img">
+                        <img src="{% static 'travelingapp/image/NAUKUCHIATAL.jpg' %}" alt="Naukuchiatal">
+                    </div>
+                    <div class="package-body">
+                        <div class="rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.6</div>
+                        <h3>Naukuchiatal</h3>
+                        <p class="package-meta"><i class="fa-solid fa-clock"></i> 2 Days &nbsp;|&nbsp; <i class="fa-solid fa-signal"></i> Easy</p>
+                        <div class="package-footer">
+                            <span class="price">&#8377;7,740 <small>/person</small></span>
+                            <a href="{% url 'booking' %}" class="btn btn-outline-dark btn-sm">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="famous-section adventure-section">
+            <div class="region-heading">
+                <h2>Adventure &amp; Nature</h2>
+            </div>
+            <div class="package-container">
+                <div class="package-card">
+                    <div class="package-img">
+                        <img src="{% static 'travelingapp/image/AULI.jpg' %}" alt="Auli">
+                    </div>
+                    <div class="package-body">
+                        <div class="rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.6</div>
+                        <h3>Auli</h3>
+                        <p class="package-meta"><i class="fa-solid fa-clock"></i> 5 Days &nbsp;|&nbsp; <i class="fa-solid fa-signal"></i> Moderate</p>
+                        <div class="package-footer">
+                            <span class="price">&#8377;17,400 <small>/person</small></span>
+                            <a href="{% url 'booking' %}" class="btn btn-outline-dark btn-sm">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="package-card">
+                    <div class="package-img">
+                        <img src="{% static 'travelingapp/image/VALLEY-OF-FLOWERS.jpg' %}" alt="Valley of Flowers">
+                    </div>
+                    <div class="package-body">
+                        <div class="rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.6</div>
+                        <h3>Valley of Flowers</h3>
+                        <p class="package-meta"><i class="fa-solid fa-clock"></i> 6 Days &nbsp;|&nbsp; <i class="fa-solid fa-signal"></i> Moderate</p>
+                        <div class="package-footer">
+                            <span class="price">&#8377;19,200 <small>/person</small></span>
+                            <a href="{% url 'package_detail' 'valley-of-flower' %}" class="btn btn-outline-dark btn-sm">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="package-card">
+                    <div class="package-img">
+                        <img src="{% static 'travelingapp/image/HEMKUND-SAHIB.jpg' %}" alt="Hemkund Sahib">
+                    </div>
+                    <div class="package-body">
+                        <div class="rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.6</div>
+                        <h3>Hemkund Sahib</h3>
+                        <p class="package-meta"><i class="fa-solid fa-clock"></i> 3 Days &nbsp;|&nbsp; <i class="fa-solid fa-signal"></i> Challenging</p>
+                        <div class="package-footer">
+                            <span class="price">&#8377;13,800 <small>/person</small></span>
+                            <a href="{% url 'booking' %}" class="btn btn-outline-dark btn-sm">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="package-card">
+                    <div class="package-img">
+                        <img src="{% static 'travelingapp/image/GANGOTRI.jpg' %}" alt="Gangotri">
+                    </div>
+                    <div class="package-body">
+                        <div class="rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.6</div>
+                        <h3>Gangotri</h3>
+                        <p class="package-meta"><i class="fa-solid fa-clock"></i> 3 Days &nbsp;|&nbsp; <i class="fa-solid fa-signal"></i> Moderate</p>
+                        <div class="package-footer">
+                            <span class="price">&#8377;12,600 <small>/person</small></span>
+                            <a href="{% url 'booking' %}" class="btn btn-outline-dark btn-sm">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="package-card">
+                    <div class="package-img">
+                        <img src="{% static 'travelingapp/image/YAMUNOTRI.jpg' %}" alt="Yamunotri">
+                    </div>
+                    <div class="package-body">
+                        <div class="rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.6</div>
+                        <h3>Yamunotri</h3>
+                        <p class="package-meta"><i class="fa-solid fa-clock"></i> 3 Days &nbsp;|&nbsp; <i class="fa-solid fa-signal"></i> Moderate</p>
+                        <div class="package-footer">
+                            <span class="price">&#8377;12,600 <small>/person</small></span>
+                            <a href="{% url 'booking' %}" class="btn btn-outline-dark btn-sm">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</main>
+{% endblock body %}

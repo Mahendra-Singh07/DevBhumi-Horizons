@@ -1,0 +1,220 @@
+{% extends 'travelingapp/base.html' %}
+{% load static %}
+{% block title %}Valley of Flowers{% endblock title %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'travelingapp/css/traveling-view-detail.css' %}">
+{% endblock extra_css %}
+{% block body %}
+<section class="detail-hero">
+    <div class="detail-hero-media">
+        <img src="{% static 'travelingapp/image/VALLEY-OF-FLOWERS.jpg' %}" alt="Valley of Flowers">
+        <div class="hero-overlay"></div>
+    </div>
+    <div class="container detail-hero-content">
+        <span class="badge">Spiritual Himalayan Journey | Garhwal Region</span>
+        <h1>Valley of Flowers</h1>
+        <p>Step into a living painting with our Valley of Flowers Trek Package, a UNESCO World Heritage experience nestled in the Garhwal Himalayas.</p>
+        <div class="detail-hero-footer">
+            <span class="detail-hero-price">&#8377;19,200 <small>/ person</small></span>
+            <a href="{% url 'booking' %}" class="btn btn-secondary">Book Now <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+    </div>
+</section>
+
+<section class="detail-and-booking-section section">
+    <div class="container detail-layout">
+        <div class="detail-container">
+            <h2>Valley of Flowers (5N/6D)</h2>
+            <p class="tagline">Spiritual Himalayan Journey | Garhwal Region</p>
+
+            <div class="fact-strip">
+                    <div class="fact-item"><i class="fa-solid fa-calendar-days"></i><span>6 Days / 5 Nights</span></div>
+                    <div class="fact-item"><i class="fa-solid fa-signal"></i><span>Moderate</span></div>
+                    <div class="fact-item"><i class="fa-solid fa-user-group"></i><span>6-12 People</span></div>
+                    <div class="fact-item"><i class="fa-solid fa-sun"></i><span>July - September</span></div>
+            </div>
+
+            <div class="detail-box">
+                <h3><i class="fa-solid fa-location-dot"></i> Location</h3>
+                <ul>
+                    <li>Region: Garhwal, Uttarakhand</li>
+                    <li>Highlights: Valley of Flowers, Hemkund Sahib</li>
+                    <li>Starting Point: Delhi</li>
+                    <li>Ending Point: Delhi</li>
+                </ul>
+            </div>
+
+            <div class="detail-box">
+                <h3><i class="fa-solid fa-route"></i> Day-wise Itinerary</h3>
+                <div class="itinerary-timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker">1</div>
+                        <div class="timeline-content">
+                            <h4>Day 1 &mdash; Delhi to Govindghat</h4>
+                            <ul><li>Early morning departure</li><li>Long drive via Haridwar, Rishikesh, Srinagar</li><li>Reach Govindghat by evening</li></ul>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker">2</div>
+                        <div class="timeline-content">
+                            <h4>Day 2 &mdash; Trek to Ghangaria</h4>
+                            <ul><li>Drive to Pulna (trek start point)</li><li>10 km trek to Ghangaria</li><li>Check-in at camp/hotel, rest &amp; acclimatization</li></ul>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker">3</div>
+                        <div class="timeline-content">
+                            <h4>Day 3 &mdash; Valley of Flowers Trek</h4>
+                            <ul><li>4 km trek to Valley gate</li><li>Explore alpine meadows, wildflowers, glacier streams</li><li>Photography &amp; packed lunch</li><li>Return to Ghangaria by evening</li></ul>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker">4</div>
+                        <div class="timeline-content">
+                            <h4>Day 4 &mdash; Hemkund Sahib Trek</h4>
+                            <ul><li>Steep 6 km trek to Hemkund Lake &amp; Gurudwara</li><li>Spiritual experience at 4,300m altitude</li><li>Return to Ghangaria</li></ul>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker">5</div>
+                        <div class="timeline-content">
+                            <h4>Day 5 &mdash; Return to Govindghat</h4>
+                            <ul><li>Trek back to Pulna</li><li>Drive to Govindghat / Joshimath</li><li>Rest &amp; local sightseeing</li></ul>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker">6</div>
+                        <div class="timeline-content">
+                            <h4>Day 6 &mdash; Return to Delhi</h4>
+                            <ul><li>Early morning departure</li><li>Scenic drive via Rishikesh</li><li>Tour ends with nature-filled memories</li></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-box">
+                <h3><i class="fa-solid fa-utensils"></i> Food &amp; Stay</h3>
+                <ul>
+                    <li>Stay: Hotels / Camps / Dharamshalas</li>
+                    <li>Meals: Breakfast, Lunch &amp; Dinner included</li>
+                    <li>Special Meals: Satvik / Jain on request</li>
+                </ul>
+            </div>
+
+            <div class="detail-box">
+                <h3><i class="fa-solid fa-car"></i> Travel &amp; Driver</h3>
+                <ul>
+                    <li>Vehicle: Tempo Traveller / SUV</li>
+                    <li>Driver Charges: &#8377;1,200/day &times; 6 days = &#8377;7,200</li>
+                    <li>Driver Add-on: Optional (visible during booking)</li>
+                </ul>
+            </div>
+
+            <div class="detail-box">
+                <h3><i class="fa-solid fa-indian-rupee-sign"></i> Pricing Breakdown</h3>
+                <table class="pricing-table">
+                    <tr><th>Items</th><th>Cost (INR)</th></tr>
+                        <tr><td>Base Tour Cost</td><td>&#8377;10,000</td></tr>
+                        <tr><td>Our commission (20%)</td><td>&#8377;2,000</td></tr>
+                        <tr><td>Final Price (without driver)</td><td>&#8377;12,000</td></tr>
+                        <tr><td>Driver Add-on (6 Days)</td><td>&#8377;7,200</td></tr>
+                        <tr><td>Total with Driver</td><td>&#8377;19,200</td></tr>
+                </table>
+            </div>
+
+            <div class="detail-box inclusions-exclusions">
+                <div class="inc-col">
+                    <h3><i class="fa-solid fa-circle-check"></i> Inclusions</h3>
+                    <ul class="check-list">
+                        <li><i class="fa-solid fa-check"></i> Accommodation</li>
+                        <li><i class="fa-solid fa-check"></i> Meals (Breakfast + Dinner)</li>
+                        <li><i class="fa-solid fa-check"></i> Temple entry &amp; trek permits</li>
+                        <li><i class="fa-solid fa-check"></i> Local guide &amp; support</li>
+                        <li><i class="fa-solid fa-check"></i> Emergency medical kit</li>
+                    </ul>
+                </div>
+                <div class="exc-col">
+                    <h3><i class="fa-solid fa-circle-xmark"></i> Exclusions</h3>
+                    <ul class="cross-list">
+                        <li><i class="fa-solid fa-xmark"></i> Personal snacks &amp; lunch</li>
+                        <li><i class="fa-solid fa-xmark"></i> Pony / Palki charges</li>
+                        <li><i class="fa-solid fa-xmark"></i> Insurance &amp; medical expenses</li>
+                        <li><i class="fa-solid fa-xmark"></i> Tips &amp; donations</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="detail-box">
+                <h3><i class="fa-solid fa-star"></i> Highlights</h3>
+                <ul>
+                    <li>UNESCO World Heritage trek</li>
+                    <li>Wildflowers, glacier streams, alpine meadows</li>
+                    <li>Spiritual visit to Hemkund Sahib</li>
+                    <li>Transparent pricing with commission breakdown</li>
+                </ul>
+            </div>
+
+            <div class="detail-box">
+                <h3><i class="fa-solid fa-images"></i> Photo Gallery</h3>
+                <div class="detail-gallery">
+                    <div class="detail-gallery-item"><img src="{% static 'travelingapp/image/VALLEY-OF-FLOWERS.jpg' %}" alt="VALLEY-OF-FLOWERS.jpg"></div>
+                    <div class="detail-gallery-item"><img src="{% static 'travelingapp/image/HEMKUND-SAHIB.jpg' %}" alt="HEMKUND-SAHIB.jpg"></div>
+                    <div class="detail-gallery-item"><img src="{% static 'travelingapp/image/AULI.jpg' %}" alt="AULI.jpg"></div>
+                    <div class="detail-gallery-item"><img src="{% static 'travelingapp/image/GANGOTRI.jpg' %}" alt="GANGOTRI.jpg"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="booking-container">
+            <h2>Book This Package</h2>
+            <p class="booking-note">Reserve your spot &mdash; our team will confirm your booking within 24 hours.</p>
+            <form action="{% url 'booking' %}" method="get">
+                <input type="text" placeholder="Your Name" disabled>
+                <input type="email" placeholder="Your Email" disabled>
+                <input type="number" min="1" value="1" disabled>
+                <textarea placeholder="Special Requests" disabled></textarea>
+                <a href="{% url 'booking' %}" class="btn btn-primary btn-block">Continue to Booking <i class="fa-solid fa-arrow-right"></i></a>
+            </form>
+            <div class="booking-contact-row">
+                <a href="tel:+917982479183" class="btn btn-outline-dark btn-sm"><i class="fa-solid fa-phone"></i> Call</a>
+                <a href="https://wa.me/917982479183" target="_blank" class="btn btn-secondary btn-sm"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container related-packages">
+        <div class="section-heading">
+            <span class="eyebrow">You May Also Like</span>
+            <h2>Related Packages</h2>
+        </div>
+        <div class="package-container">
+            <div class="package-card">
+                <div class="package-img">
+                    <img src="{% static 'travelingapp/image/Kedarnath_Temple.jpg' %}" alt="Kedarkantha Trek">
+                </div>
+                <div class="package-body">
+                    <h3>Kedarkantha Trek</h3>
+                    <p class="package-meta"><i class="fa-solid fa-clock"></i> 4 Days</p>
+                    <div class="package-footer">
+                        <span class="price">&#8377;17,400 <small>/person</small></span>
+                        <a href="{% url 'view1' %}" class="btn btn-outline-dark btn-sm">View Details</a>
+                    </div>
+                </div>
+            </div>
+            <div class="package-card">
+                <div class="package-img">
+                    <img src="{% static 'travelingapp/image/Chardham-Yatra.webp' %}" alt="Char Dham Yatra">
+                </div>
+                <div class="package-body">
+                    <h3>Char Dham Yatra</h3>
+                    <p class="package-meta"><i class="fa-solid fa-clock"></i> 12 Days</p>
+                    <div class="package-footer">
+                        <span class="price">&#8377;50,400 <small>/person</small></span>
+                        <a href="{% url 'view2' %}" class="btn btn-outline-dark btn-sm">View Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock body %}

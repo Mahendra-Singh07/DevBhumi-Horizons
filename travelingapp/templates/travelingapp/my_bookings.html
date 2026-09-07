@@ -1,0 +1,67 @@
+{% extends 'travelingapp/base.html' %}
+{% load static %}
+{% block page_id %}MyBookings{% endblock page_id %}
+{% block title %}My Bookings{% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'travelingapp/css/profile.css' %}">
+{% endblock extra_css %}
+
+{% block body %}
+<section class="profile-page">
+  <div class="container">
+    <div class="profile-layout">
+
+      <div class="profile-card">
+        <div class="profile-avatar-wrap">
+          <div class="profile-avatar">
+            {% if user.profile.profile_picture %}
+              <img src="{{ user.profile.profile_picture.url }}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+            {% else %}
+              {{ user.profile.initials }}
+            {% endif %}
+          </div>
+        </div>
+        <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+        <p class="profile-email-muted">{{ user.email }}</p>
+
+        <div class="profile-nav">
+          <a href="{% url 'profile' %}"><i class="fa-solid fa-user"></i> My Profile</a>
+          <a href="{% url 'my_bookings' %}" class="active"><i class="fa-solid fa-suitcase"></i> My Bookings</a>
+          <a href="#" class="danger js-logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </div>
+      </div>
+
+      <div class="profile-form-card">
+        <h2>My bookings</h2>
+        <p class="profile-subtitle">Trips you've booked with us</p>
+
+        {% if bookings %}
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            {% for booking in bookings %}
+              <div style="border:1px solid var(--color-border); border-radius:var(--radius-md); padding:18px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                <div>
+                  <h3 style="font-size:1.05rem; margin-bottom:4px;">{{ booking.package.package_name }}</h3>
+                  <p style="color:var(--color-text-muted); font-size:0.86rem;">
+                    <i class="fa-solid fa-calendar-days"></i> {{ booking.travel_date }}
+                    &nbsp;•&nbsp;
+                    <i class="fa-solid fa-user-group"></i> {{ booking.travelers }} traveler{{ booking.travelers|pluralize }}
+                  </p>
+                </div>
+                <span style="font-size:0.8rem; color:var(--color-text-muted);">Booked on {{ booking.booking_date|date:"d M Y" }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div style="text-align:center; padding:50px 20px; color:var(--color-text-muted);">
+            <i class="fa-solid fa-suitcase" style="font-size:2rem; margin-bottom:14px; display:block;"></i>
+            <p style="margin-bottom:18px;">You haven't booked any trips yet.</p>
+            <a href="{% url 'explore' %}" class="btn btn-primary">Explore packages</a>
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</section>
+{% endblock body %}
