@@ -160,6 +160,14 @@ class Booking(models.Model):
     travelers = models.PositiveIntegerField()
     special_request = models.TextField(blank=True, null=True )
     booking_date = models.DateTimeField(auto_now_add=True)
+    PAYMENT_STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("paid", "Paid"),
+        ("failed", "Failed"),
+    ]
+    payment_status = models.CharField(max_length=10, choices=PAYMENT_STATUS_CHOICES, default="pending")
+    razorpay_order_id = models.CharField(max_length=100, blank=True, null=True)
+    razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
     def __str__(self):
         return f'{self.name} - ({self.package.package_name})'
 

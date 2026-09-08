@@ -1,0 +1,154 @@
+{% extends 'travelingapp/base.html' %}
+{% load static %}
+{% block title %}Complete Payment{% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'travelingapp/css/payment.css' %}">
+{% endblock extra_css %}
+
+{% block body %}
+<section class="payment-page">
+  <div class="container">
+    <div class="payment-wrap">
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="newsletter-message {{ message.tags }}" style="margin-bottom: 16px;">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <div class="payment-card">
+
+        <!-- ---------- Package banner ---------- -->
+        <div class="payment-hero">
+          {% if booking.package.hero_image %}
+            <img src="{{ booking.package.hero_image.url }}" alt="{{ booking.package.package_name }}">
+          {% endif %}
+          <div class="payment-hero-overlay"></div>
+          <div class="payment-hero-text">
+            <span class="badge"><i class="fa-solid fa-check"></i> Confirm your booking</span>
+            <h2>{{ booking.package.package_name }}</h2>
+            <p>{{ booking.package.title_with_duration }}</p>
+          </div>
+        </div>
+
+        <div class="payment-body">
+
+          <!-- ---------- Booking details ---------- -->
+          <p class="payment-section-title">Booking Details</p>
+          <div class="payment-details-grid">
+            <div class="payment-detail-item">
+              <i class="fa-solid fa-user"></i>
+              <div><span>Name</span><strong>{{ booking.name }}</strong></div>
+            </div>
+            <div class="payment-detail-item">
+              <i class="fa-solid fa-envelope"></i>
+              <div><span>Email</span><strong>{{ booking.email }}</strong></div>
+            </div>
+            <div class="payment-detail-item">
+              <i class="fa-solid fa-phone"></i>
+              <div><span>Phone</span><strong>{{ booking.phone }}</strong></div>
+            </div>
+            <div class="payment-detail-item">
+              <i class="fa-solid fa-calendar-days"></i>
+              <div><span>Travel Date</span><strong>{{ booking.travel_date }}</strong></div>
+            </div>
+            <div class="payment-detail-item">
+              <i class="fa-solid fa-user-group"></i>
+              <div><span>Travelers</span><strong>{{ booking.travelers }}</strong></div>
+            </div>
+            <div class="payment-detail-item">
+              <i class="fa-solid fa-clock"></i>
+              <div><span>Duration</span><strong>{{ booking.package.package_duration }}</strong></div>
+            </div>
+            {% if booking.special_request %}
+              <div class="payment-detail-item full">
+                <i class="fa-solid fa-note-sticky"></i>
+                <div><span>Special Request</span><strong>{{ booking.special_request }}</strong></div>
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- ---------- Price breakdown ---------- -->
+          <p class="payment-section-title">Price Details</p>
+          <div class="payment-price-box">
+            <div class="payment-price-row">
+              <span>Total Package Price</span>
+              <strong>₹{{ total_price }}</strong>
+            </div>
+            <div class="payment-price-row highlight">
+              <span>Advance — Pay Now</span>
+              <strong>₹{{ amount_rupees }}</strong>
+            </div>
+            <div class="payment-price-row muted">
+              <span>Remaining — Pay at trip</span>
+              <strong>₹{{ remaining_amount }}</strong>
+            </div>
+          </div>
+
+          <button id="payNowBtn" class="btn btn-primary payment-pay-btn">Pay ₹{{ amount_rupees }} Now</button>
+          <p id="payStatusMsg" class="payment-status-msg"></p>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  document.getElementById("payNowBtn").addEventListener("click", function () {
+    const options = {
+      key: "{{ razorpay_key_id }}",
+      amount: "{{ amount_paise }}",
+      currency: "INR",
+      name: "DevBhumi Horizons",
+      description: "Booking advance — {{ booking.package.package_name }}",
+      order_id: "{{ order_id }}",
+      handler: function (response) {
+        document.getElementById("payStatusMsg").textContent = "Verifying payment...";
+
+        fetch("{% url 'verify_payment' %}", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}",
+          },
+          body: JSON.stringify({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            booking_id: "{{ booking.id }}",
+          }),
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              document.getElementById("payStatusMsg").textContent = "Payment successful! Redirecting...";
+              window.location.href = "{% url 'my_bookings' %}";
+            } else {
+              document.getElementById("payStatusMsg").textContent = data.error || "Payment verification failed.";
+            }
+          })
+          .catch(() => {
+            document.getElementById("payStatusMsg").textContent = "Network error while verifying payment.";
+          });
+      },
+      prefill: {
+        name: "{{ booking.name }}",
+        email: "{{ booking.email }}",
+        contact: "{{ booking.phone }}",
+      },
+      theme: { color: "#1b5e20" },
+      modal: {
+        ondismiss: function () {
+          document.getElementById("payStatusMsg").textContent = "Payment cancelled — your booking is saved as pending. You can pay anytime from My Bookings.";
+        },
+      },
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+  });
+</script>
+{% endblock body %}

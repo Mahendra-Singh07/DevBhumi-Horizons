@@ -6,6 +6,16 @@ from django.http import JsonResponse
 from .models import User, EmailOTP, Profile
 
 
+import json
+from django.utils import timezone
+from datetime import timedelta
+from django.core.mail import send_mail
+from django.conf import settings
+from django.views.decorators.http import require_POST
+from django.contrib.auth import authenticate, login, logout
+from django.core.mail import send_mail, BadHeaderError
+import smtplib
+
 # Create your views here.
 def view_home(request):
     return render(request, 'travelingapp/home.html')
@@ -204,8 +214,8 @@ def view_booking(request):
             booking.user = request.user
             booking.save()
 
-        messages.success(request, "Booked Successfully")
-        return redirect('booking')
+        # messages.success(request, "Booked Successfully")
+        return redirect('payment', booking_id = booking.id)
 
     package = Package.objects.all()
     return render(request, "travelingapp/booking.html",{
@@ -216,6 +226,76 @@ def view_booking(request):
         "special": request.GET.get("request"),
         "package_slug": request.GET.get("package_slug")
     })
+
+
+import razorpay
+
+razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
+BOOKING_ADVANCE_AMOUNT = 1000  # rupees — fixed deposit to confirm a booking
+
+
+def view_payment(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+
+    if booking.payment_status == "paid":
+        messages.info(request, "This booking is already paid.")
+        return redirect("my_bookings")
+
+    amount_paise = BOOKING_ADVANCE_AMOUNT * 100
+
+    order = razorpay_client.order.create({
+        "amount": amount_paise,
+        "currency": "INR",
+        "receipt": f"booking_{booking.id}",
+        "payment_capture": 1,
+    })
+
+    booking.razorpay_order_id = order["id"]
+    booking.save()
+
+    # Total package price — use the detailed pricing breakdown if the package has one,
+    # otherwise fall back to the package's base listed price.
+    total_price = booking.package.price
+    if hasattr(booking.package, "pricing"):
+        total_price = booking.package.pricing.final_price
+
+    remaining_amount = total_price - BOOKING_ADVANCE_AMOUNT
+
+    return render(request, "travelingapp/payment.html", {
+        "booking": booking,
+        "order_id": order["id"],
+        "amount_paise": amount_paise,
+        "amount_rupees": BOOKING_ADVANCE_AMOUNT,
+        "razorpay_key_id": settings.RAZORPAY_KEY_ID,
+        "total_price": total_price,
+        "remaining_amount": remaining_amount,
+    })
+
+
+@require_POST
+def verify_payment(request):
+    data = json.loads(request.body)
+
+    params_dict = {
+        "razorpay_order_id": data.get("razorpay_order_id", ""),
+        "razorpay_payment_id": data.get("razorpay_payment_id", ""),
+        "razorpay_signature": data.get("razorpay_signature", ""),
+    }
+
+    try:
+        razorpay_client.utility.verify_payment_signature(params_dict)
+    except razorpay.errors.SignatureVerificationError:
+        return JsonResponse({"success": False, "error": "Payment verification failed."}, status=400)
+
+    booking_id = data.get("booking_id")
+    booking = get_object_or_404(Booking, id=booking_id)
+    booking.payment_status = "paid"
+    booking.razorpay_payment_id = params_dict["razorpay_payment_id"]
+    booking.save()
+
+    return JsonResponse({"success": True, "message": "Payment verified successfully."})
+
 
 
 def view_package_detail(request, slug):
@@ -264,15 +344,15 @@ def view_searchDestinations(request):
 # def view_login(request):
 #     return render(request, 'travelingapp/login.html')
 
-import json
-from django.utils import timezone
-from datetime import timedelta
-from django.core.mail import send_mail
-from django.conf import settings
-from django.views.decorators.http import require_POST
-from django.contrib.auth import authenticate, login, logout
-from django.core.mail import send_mail, BadHeaderError
-import smtplib
+# import json
+# from django.utils import timezone
+# from datetime import timedelta
+# from django.core.mail import send_mail
+# from django.conf import settings
+# from django.views.decorators.http import require_POST
+# from django.contrib.auth import authenticate, login, logout
+# from django.core.mail import send_mail, BadHeaderError
+# import smtplib
 
 def _send_otp_email(user):
     EmailOTP.objects.filter(user = user).delete()
