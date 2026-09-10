@@ -10,6 +10,11 @@
 {% block body %}
 <section class="profile-page">
   <div class="container">
+    {% if messages %}
+      {% for message in messages %}
+      <div class="newsletter-message {{ message.tags }}" style="margin-bottom: 16px;">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
     <div class="profile-layout">
 
       <div class="profile-card">
@@ -59,7 +64,9 @@
                 </div>
                 <div style="text-align:right;">
                   <span style="display:block; font-size:0.8rem; color:var(--color-text-muted); margin-bottom:8px;">Booked on {{ booking.booking_date|date:"d M Y" }}</span>
-                  {% if booking.payment_status != "paid" %}
+                  {% if booking.payment_status == "paid" %}
+                    <a href="{% url 'invoice' booking.id %}" class="btn btn-sm btn-outline-dark">View Invoice</a>
+                  {% else %}
                     <a href="{% url 'payment' booking.id %}" class="btn btn-sm btn-primary">Pay Now</a>
                   {% endif %}
                 </div>

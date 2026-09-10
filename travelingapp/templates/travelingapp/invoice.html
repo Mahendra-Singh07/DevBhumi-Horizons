@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Invoice — DBH-{{ booking.id|stringformat:"05d" }}</title>
+<style>
+  body {
+    font-family: Helvetica, Arial, sans-serif;
+    color: #222;
+    font-size: 13px;
+    margin: 0;
+    padding: 0;
+    background: #f4f2ec;
+  }
+  .page-actions {
+    max-width: 760px;
+    margin: 24px auto 0;
+    padding: 0 20px;
+    display: block;
+    text-align: right;
+  }
+  .page-actions a {
+    display: inline-block;
+    text-decoration: none;
+    padding: 10px 22px;
+    border-radius: 999px;
+    font-weight: bold;
+    font-size: 13px;
+    margin-left: 10px;
+  }
+  .btn-download {
+    background: #1b5e20;
+    color: #ffffff;
+  }
+  .btn-back {
+    background: #ffffff;
+    color: #1b5e20;
+    border: 1.5px solid #1b5e20;
+  }
+
+  .invoice-sheet {
+    max-width: 760px;
+    margin: 20px auto 60px;
+    background: #ffffff;
+    padding: 40px 46px;
+    border: 1px solid #e0ddd0;
+  }
+
+  .header-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+  }
+  .header-table td {
+    vertical-align: top;
+  }
+  .company-name {
+    font-size: 22px;
+    font-weight: bold;
+    color: #1b5e20;
+    margin: 0 0 4px;
+  }
+  .company-tagline {
+    font-size: 11px;
+    color: #777;
+    margin: 0 0 10px;
+  }
+  .company-contact {
+    font-size: 11px;
+    color: #555;
+    line-height: 1.6;
+  }
+  .invoice-title {
+    font-size: 26px;
+    font-weight: bold;
+    color: #222;
+    text-align: right;
+    margin: 0 0 8px;
+  }
+  .invoice-meta {
+    text-align: right;
+    font-size: 12px;
+    color: #555;
+    line-height: 1.8;
+  }
+  .status-badge {
+    display: inline-block;
+    background: #e5f3e6;
+    color: #1b5e20;
+    font-weight: bold;
+    font-size: 11px;
+    padding: 3px 12px;
+    border: 1px solid #1b5e20;
+    border-radius: 3px;
+    margin-top: 6px;
+  }
+
+  .divider {
+    border-top: 2px solid #1b5e20;
+    margin: 0 0 26px;
+  }
+
+  .section-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #999;
+    margin: 0 0 6px;
+  }
+
+  .info-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 28px;
+  }
+  .info-table td {
+    vertical-align: top;
+    width: 50%;
+    padding-right: 20px;
+  }
+  .info-name {
+    font-size: 15px;
+    font-weight: bold;
+    margin: 0 0 4px;
+  }
+  .info-line {
+    font-size: 12px;
+    color: #555;
+    line-height: 1.7;
+  }
+
+  table.line-items {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 22px;
+  }
+  table.line-items th {
+    background: #1b5e20;
+    color: #ffffff;
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 10px 14px;
+  }
+  table.line-items th.amount-col,
+  table.line-items td.amount-col {
+    text-align: right;
+  }
+  table.line-items td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+  }
+
+  table.totals {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+  }
+  table.totals td {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+  table.totals td.label {
+    text-align: right;
+    color: #555;
+    width: 80%;
+  }
+  table.totals td.value {
+    text-align: right;
+    width: 20%;
+    white-space: nowrap;
+  }
+  table.totals tr.paid-row td {
+    color: #1b5e20;
+    font-weight: bold;
+    background: #f2f8f2;
+  }
+  table.totals tr.due-row td {
+    font-weight: bold;
+    font-size: 15px;
+    border-top: 2px solid #222;
+  }
+
+  .payment-ref {
+    font-size: 11px;
+    color: #777;
+    margin-bottom: 30px;
+  }
+  .payment-ref strong {
+    color: #333;
+  }
+
+  .footer-note {
+    border-top: 1px solid #eee;
+    padding-top: 16px;
+    font-size: 11px;
+    color: #999;
+    text-align: center;
+    line-height: 1.7;
+  }
+</style>
+</head>
+<body>
+
+  {% if not for_pdf %}
+  <div class="page-actions">
+    <a href="{% url 'my_bookings' %}" class="btn-back">Back to My Bookings</a>
+    <a href="{% url 'download_invoice' booking.id %}" class="btn-download">Download PDF</a>
+  </div>
+  {% endif %}
+
+  <div class="invoice-sheet">
+
+    <table class="header-table">
+      <tr>
+        <td style="width: 55%;">
+          <p class="company-name">DEV BHUMI HORIZONS</p>
+          <p class="company-tagline">Land of the Gods — Explore Uttarakhand</p>
+          <p class="company-contact">
+            devbhumihorizons@gmail.com<br>
+            +91 79824 79183
+          </p>
+        </td>
+        <td style="width: 45%;">
+          <p class="invoice-title">INVOICE</p>
+          <p class="invoice-meta">
+            Invoice No: <strong>DBH-{{ booking.id|stringformat:"05d" }}</strong><br>
+            Date: {{ booking.booking_date|date:"d M Y" }}<br>
+            <span class="status-badge">PAID</span>
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <div class="divider"></div>
+
+    <table class="info-table">
+      <tr>
+        <td>
+          <p class="section-title">Billed To</p>
+          <p class="info-name">{{ booking.name }}</p>
+          <p class="info-line">
+            {{ booking.email }}<br>
+            {{ booking.phone }}
+          </p>
+        </td>
+        <td>
+          <p class="section-title">Trip Details</p>
+          <p class="info-line">
+            <strong>Package:</strong> {{ booking.package.package_name }}<br>
+            <strong>Duration:</strong> {{ booking.package.package_duration }}<br>
+            <strong>Travel Date:</strong> {{ booking.travel_date }}<br>
+            <strong>Travelers:</strong> {{ booking.travelers }}
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <table class="line-items">
+      <tr>
+        <th>Description</th>
+        <th class="amount-col">Amount</th>
+      </tr>
+      <tr>
+        <td>
+          {{ booking.package.package_name }} — {{ booking.package.title_with_duration }}
+          {% if booking.special_request %}<br><span style="color:#888; font-size:11px;">Note: {{ booking.special_request }}</span>{% endif %}
+        </td>
+        <td class="amount-col">₹{{ total_price }}</td>
+      </tr>
+    </table>
+
+    <table class="totals">
+      <tr>
+        <td class="label">Total Package Price</td>
+        <td class="value">₹{{ total_price }}</td>
+      </tr>
+      <tr class="paid-row">
+        <td class="label">Amount Paid (Advance)</td>
+        <td class="value">₹{{ amount_paid }}</td>
+      </tr>
+      <tr class="due-row">
+        <td class="label">Balance Due (Payable at trip)</td>
+        <td class="value">₹{{ balance_due }}</td>
+      </tr>
+    </table>
+
+    <p class="payment-ref">
+      <strong>Payment Reference:</strong> {{ booking.razorpay_payment_id }}<br>
+      <strong>Payment Method:</strong> Razorpay
+    </p>
+
+    <div class="footer-note">
+      This is a computer-generated invoice and does not require a signature.<br>
+      Thank you for booking with DevBhumi Horizons — see you in the mountains!
+    </div>
+
+  </div>
+</body>
+</html>

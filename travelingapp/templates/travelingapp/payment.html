@@ -124,8 +124,8 @@
           .then(res => res.json())
           .then(data => {
             if (data.success) {
-              document.getElementById("payStatusMsg").textContent = "Payment successful! Redirecting...";
-              window.location.href = "{% url 'my_bookings' %}";
+              document.getElementById("payStatusMsg").textContent = "Payment successful! Redirecting to your invoice...";
+              window.location.href = "{% url 'invoice' booking.id %}";
             } else {
               document.getElementById("payStatusMsg").textContent = data.error || "Payment verification failed.";
             }

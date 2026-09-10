@@ -164,137 +164,7 @@ def view_subscribe(request):
 # created receives the second value (True or False).
 
 
-def view_booking(request):
-    if request.method == "POST":
 
-        # this is for error protection 
-        # kyuki jab hum booking m koi field fill nahi hoti toh error aata h
-        # halaki jo filed required nahi hoti option h, usme hum null= True and blank =True likh dete h 
-        # but jo required hoti h aur fill nahi kiya toh error aata h 
-        # html m field m required likhne se problem solve toh ho jati h but koi bhi ushe change krr sakta h 
-        # so hame backend m ye use krte h taki sab field fill ho koi rhh jaye toh ye msg aaye error na aaye 
-
-        name = request.POST.get("name")
-        email = request.POST.get("email")
-        phone = request.POST.get("phone")
-        travel_date = request.POST.get("travel_date")
-        travelers = request.POST.get("total_travelers")
-        special_request = request.POST.get("request")
-        if not name:
-            messages.error(request, "Name is required")
-            return redirect("booking")
-        
-        if not email:
-            messages.error(request, "Email is Required")
-            return redirect("booking")
-        if not phone:
-            messages.error(request, "Phone number is required.")
-            return redirect("booking")
-
-        if not travel_date:
-            messages.error(request, "Travel date is required.")
-            return redirect("booking")
-
-        if not travelers:
-            messages.error(request, "Please enter number of travelers.")
-            return redirect("booking")
-
-        
-        package = get_object_or_404(Package, slug=request.POST.get("package_slug"))
-        booking = Booking.objects.create(
-            name= name,
-            email = email,
-            phone = phone,
-            travel_date = travel_date,
-            travelers = travelers,
-            package = package,
-            special_request = special_request,
-        )
-        if request.user.is_authenticated:
-            booking.user = request.user
-            booking.save()
-
-        # messages.success(request, "Booked Successfully")
-        return redirect('payment', booking_id = booking.id)
-
-    package = Package.objects.all()
-    return render(request, "travelingapp/booking.html",{
-        "packages": package,
-        "name" : request.GET.get("name"),
-        "email" : request.GET.get("email"),
-        "travelers" : request.GET.get("total_travelers", "1"),
-        "special": request.GET.get("request"),
-        "package_slug": request.GET.get("package_slug")
-    })
-
-
-import razorpay
-
-razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-
-BOOKING_ADVANCE_AMOUNT = 1000  # rupees — fixed deposit to confirm a booking
-
-
-def view_payment(request, booking_id):
-    booking = get_object_or_404(Booking, id=booking_id)
-
-    if booking.payment_status == "paid":
-        messages.info(request, "This booking is already paid.")
-        return redirect("my_bookings")
-
-    amount_paise = BOOKING_ADVANCE_AMOUNT * 100
-
-    order = razorpay_client.order.create({
-        "amount": amount_paise,
-        "currency": "INR",
-        "receipt": f"booking_{booking.id}",
-        "payment_capture": 1,
-    })
-
-    booking.razorpay_order_id = order["id"]
-    booking.save()
-
-    # Total package price — use the detailed pricing breakdown if the package has one,
-    # otherwise fall back to the package's base listed price.
-    total_price = booking.package.price
-    if hasattr(booking.package, "pricing"):
-        total_price = booking.package.pricing.final_price
-
-    remaining_amount = total_price - BOOKING_ADVANCE_AMOUNT
-
-    return render(request, "travelingapp/payment.html", {
-        "booking": booking,
-        "order_id": order["id"],
-        "amount_paise": amount_paise,
-        "amount_rupees": BOOKING_ADVANCE_AMOUNT,
-        "razorpay_key_id": settings.RAZORPAY_KEY_ID,
-        "total_price": total_price,
-        "remaining_amount": remaining_amount,
-    })
-
-
-@require_POST
-def verify_payment(request):
-    data = json.loads(request.body)
-
-    params_dict = {
-        "razorpay_order_id": data.get("razorpay_order_id", ""),
-        "razorpay_payment_id": data.get("razorpay_payment_id", ""),
-        "razorpay_signature": data.get("razorpay_signature", ""),
-    }
-
-    try:
-        razorpay_client.utility.verify_payment_signature(params_dict)
-    except razorpay.errors.SignatureVerificationError:
-        return JsonResponse({"success": False, "error": "Payment verification failed."}, status=400)
-
-    booking_id = data.get("booking_id")
-    booking = get_object_or_404(Booking, id=booking_id)
-    booking.payment_status = "paid"
-    booking.razorpay_payment_id = params_dict["razorpay_payment_id"]
-    booking.save()
-
-    return JsonResponse({"success": True, "message": "Payment verified successfully."})
 
 
 
@@ -695,3 +565,237 @@ def view_reset_password(request):
     login(request, user)  # fresh password just proven via OTP — safe to log them straight in
 
     return JsonResponse({"success": True, "message": "Password reset successfully."})
+
+
+
+
+def view_booking(request):
+    if request.method == "POST":
+
+        name = request.POST.get("name")
+        email = request.POST.get("email")
+        phone = request.POST.get("phone")
+        travel_date = request.POST.get("travel_date")
+        travelers = request.POST.get("total_travelers")
+        special_request = request.POST.get("request")
+
+        if request.user.is_authenticated:
+            email = request.user.email
+            if not name:
+                name = f"{request.user.first_name} {request.user.last_name}".strip()
+
+        if not name:
+            messages.error(request, "Name is required")
+            return redirect("booking")
+
+        if not email:
+            messages.error(request, "Email is Required")
+            return redirect("booking")
+        if not phone:
+            messages.error(request, "Phone number is required.")
+            return redirect("booking")
+
+        if not travel_date:
+            messages.error(request, "Travel date is required.")
+            return redirect("booking")
+
+        if not travelers:
+            messages.error(request, "Please enter number of travelers.")
+            return redirect("booking")
+
+        package = get_object_or_404(Package, slug=request.POST.get("package_slug"))
+
+        # Don't let the same person create a fresh duplicate booking for the
+        # same package on the same travel date — different dates are fine
+        # (e.g. booking again for a different trip/group).
+        if request.user.is_authenticated:
+            existing_booking = Booking.objects.filter(
+                user=request.user,
+                package=package,
+                travel_date=travel_date,
+                payment_status__in=["pending", "paid"],
+            ).order_by("-booking_date").first()
+        else:
+            existing_booking = Booking.objects.filter(
+                email=email,
+                package=package,
+                travel_date=travel_date,
+                payment_status__in=["pending", "paid"],
+            ).order_by("-booking_date").first()
+            return redirect("login")
+            
+        if existing_booking:
+            if existing_booking.payment_status == "paid":
+                messages.info(request, "You've already booked this package for this date. Check My Bookings for details.")
+                return redirect("my_bookings")
+            else:
+                messages.info(request, "You already have a pending booking for this package on this date — complete the payment to confirm it.")
+                return redirect("payment", booking_id=existing_booking.id)
+
+        booking = Booking.objects.create(
+            name=name,
+            email=email,
+            phone=phone,
+            travel_date=travel_date,
+            travelers=travelers,
+            package=package,
+            special_request=special_request,
+        )
+
+        if request.user.is_authenticated:
+            booking.user = request.user
+            booking.save()
+
+        # Booking created (pending payment) — send them to pay the advance now
+        return redirect("payment", booking_id=booking.id)
+
+    package = Package.objects.all()
+    return render(request, "travelingapp/booking.html", {
+        "packages": package,
+        "name": request.GET.get("name"),
+        "email": request.GET.get("email"),
+        "travelers": request.GET.get("total_travelers", "1"),
+        "special": request.GET.get("request"),
+        "package_slug": request.GET.get("package_slug")
+    })
+
+
+import razorpay
+
+razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
+BOOKING_ADVANCE_AMOUNT = 1000  # rupees — fixed deposit to confirm a booking
+
+
+def view_payment(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+
+    if booking.payment_status == "paid":
+        messages.info(request, "This booking is already paid.")
+        return redirect("my_bookings")
+
+    amount_paise = BOOKING_ADVANCE_AMOUNT * 100
+
+    order = razorpay_client.order.create({
+        "amount": amount_paise,
+        "currency": "INR",
+        "receipt": f"booking_{booking.id}",
+        "payment_capture": 1,
+    })
+
+    booking.razorpay_order_id = order["id"]
+    booking.save()
+
+    # Total package price — use the detailed pricing breakdown if the package has one,
+    # otherwise fall back to the package's base listed price.
+    total_price = booking.package.price
+    if hasattr(booking.package, "pricing"):
+        total_price = booking.package.pricing.final_price
+
+    remaining_amount = total_price - BOOKING_ADVANCE_AMOUNT
+
+    return render(request, "travelingapp/payment.html", {
+        "booking": booking,
+        "order_id": order["id"],
+        "amount_paise": amount_paise,
+        "amount_rupees": BOOKING_ADVANCE_AMOUNT,
+        "razorpay_key_id": settings.RAZORPAY_KEY_ID,
+        "total_price": total_price,
+        "remaining_amount": remaining_amount,
+    })
+
+
+@require_POST
+def verify_payment(request):
+    data = json.loads(request.body)
+
+    params_dict = {
+        "razorpay_order_id": data.get("razorpay_order_id", ""),
+        "razorpay_payment_id": data.get("razorpay_payment_id", ""),
+        "razorpay_signature": data.get("razorpay_signature", ""),
+    }
+
+    try:
+        razorpay_client.utility.verify_payment_signature(params_dict)
+    except razorpay.errors.SignatureVerificationError:
+        return JsonResponse({"success": False, "error": "Payment verification failed."}, status=400)
+
+    booking_id = data.get("booking_id")
+    booking = get_object_or_404(Booking, id=booking_id)
+    booking.payment_status = "paid"
+    booking.razorpay_payment_id = params_dict["razorpay_payment_id"]
+    booking.save()
+
+    return JsonResponse({"success": True, "message": "Payment verified successfully."})
+
+
+
+from django.template.loader import render_to_string
+from django.http import HttpResponse
+from xhtml2pdf import pisa
+
+
+def _invoice_context(booking):
+    total_price = booking.package.price
+    if hasattr(booking.package, "pricing"):
+        total_price = booking.package.pricing.final_price
+
+    amount_paid = BOOKING_ADVANCE_AMOUNT
+    balance_due = total_price - amount_paid
+
+    return {
+        "booking": booking,
+        "total_price": total_price,
+        "amount_paid": amount_paid,
+        "balance_due": balance_due,
+    }
+
+
+def _can_view_invoice(request, booking):
+    # Guest bookings (no user attached) are viewable by anyone with the link —
+    # logged-in bookings are locked to the owner.
+    if booking.user_id and request.user.is_authenticated and booking.user_id != request.user.id:
+        return False
+    if booking.user_id and not request.user.is_authenticated:
+        return False
+    return True
+
+
+def view_invoice(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+
+    if booking.payment_status != "paid":
+        messages.error(request, "Invoice is only available after payment is completed.")
+        return redirect("my_bookings")
+
+    if not _can_view_invoice(request, booking):
+        return redirect("home")
+
+    context = _invoice_context(booking)
+    context["for_pdf"] = False
+    return render(request, "travelingapp/invoice.html", context)
+
+
+def download_invoice(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+
+    if booking.payment_status != "paid":
+        messages.error(request, "Invoice is only available after payment is completed.")
+        return redirect("my_bookings")
+
+    if not _can_view_invoice(request, booking):
+        return redirect("home")
+
+    context = _invoice_context(booking)
+    context["for_pdf"] = True
+    html = render_to_string("travelingapp/invoice.html", context)
+
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="Invoice_DBH-{booking.id:05d}.pdf"'
+
+    pisa_status = pisa.CreatePDF(html, dest=response)
+
+    if pisa_status.err:
+        return HttpResponse("Error generating PDF invoice.", status=500)
+
+    return response

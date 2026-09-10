@@ -447,6 +447,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // ---- Login-gate for forms that require an account (e.g. booking form) ----
+  // Add data-requires-auth to any <form> that should force login before submitting.
+  document.querySelectorAll("form[data-requires-auth]").forEach(form => {
+    form.addEventListener("submit", (e) => {
+      if (!window.IS_AUTHENTICATED) {
+        e.preventDefault();
+        openModal("login");
+      }
+    });
+  });
+
   // ---- Continue with Google ----
   let googleTokenClient = null;
 

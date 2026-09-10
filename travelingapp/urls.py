@@ -28,4 +28,6 @@ urlpatterns = [
     path("auth/reset-password/", view_reset_password, name="reset_password"),
     path("payment/<int:booking_id>/", view_payment, name="payment"),
     path("payment/verify/", verify_payment, name="verify_payment"),
+    path("invoice/<int:booking_id>/", view_invoice, name="invoice"),
+    path("invoice/<int:booking_id>/download/", download_invoice, name="download_invoice"),
 ]

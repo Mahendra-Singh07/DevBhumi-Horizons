@@ -26,27 +26,38 @@
 
             {% if messages %}
                 {% for msg in messages %}
-                <div class="flash-message {{ msg.tags }}"><i class="fa-solid fa-circle-check"></i> {{ msg }}</div>
+                <div class="flash-message {{ msg.tags }}" style="padding:12px 16px; border-radius:8px; margin-bottom:16px; background:#e8f4ea; color:#1b5e20; border:1px solid #1b5e20; font-size:0.92rem;">
+                    <i class="fa-solid fa-circle-check"></i> {{ msg }}
+                </div>
                 {% endfor %}
             {% endif %}
 
-            <form method="POST" id="bookingForm">
+            <form method="POST" id="bookingForm" data-requires-auth>
                 {% csrf_token %}
                 <div class="form-row">
                     <div class="field">
                         <label for="name">Full Name</label>
-                        <input type="text" id="name" name="name" placeholder="Enter your name" value="{{ name|default:'' }}" required>
+                        {% if user.is_authenticated %}
+                            <input type="text" id="name" name="name" placeholder="Enter your name" value="{{ user.first_name.capitalize}} {{user.last_name.capitalize}}" required>
+                        {% else %}
+                            <input type="text" id="name" name="name" placeholder="Enter your name" value="{{ name|default:'' }}" required>
+                        {%endif%}
                     </div>
+
                     <div class="field">
                         <label for="email">Email</label>
+                        {% if user.is_authenticated %}
+                        <input type="email" id="email" name="email" placeholder="Enter email" value="{{user.email}}" readonly required>
+                        {% else %}
                         <input type="email" id="email" name="email" placeholder="Enter email" value="{{email|default:'' }}" required >
+                        {% endif %}
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="field">
                         <label for="phone">Phone</label>
-                        <input type="tel" id="phone" name="phone" placeholder="Enter phone number" required>
+                        <input type="tel" id="phone" name="phone" placeholder="Enter phone number" value="{% if user.is_authenticated and user.profile.phone %}{{ user.profile.phone }}{% endif %}" required>
                     </div>
                     <div class="field">
                         <label for="date">Travel Date</label>
@@ -83,7 +94,11 @@
                 </div>
                     <!-- <textarea> does not have a value attribute.
                     The text must go between the opening and closing tags. -->
-                <button type="submit" class="btn btn-primary btn-block" name="submitbtn">Confirm Booking <i class="fa-solid fa-paper-plane"></i></button>
+                {% if user.is_authenticated %}
+                    <button type="submit" class="btn btn-primary btn-block" name="submitbtn">Confirm Booking <i class="fa-solid fa-paper-plane"></i></button>
+                {% else %}
+                    <button type="submit" class="btn btn-primary btn-block" data-auth-trigger="login" name="submitbtn">Confirm Booking <i class="fa-solid fa-paper-plane"></i></button>
+                {% endif %}
             </form>
         </div>
 
@@ -112,25 +127,6 @@
 
 {% block extra_js %}
 <script>
-// document.addEventListener("DOMContentLoaded", () => {
-//     const pkgSelect = document.getElementById("package");
-//     const dateInput = document.getElementById("date");
-//     const travelersInput = document.getElementById("travelers");
-//     const summaryPackage = document.getElementById("summaryPackage");
-//     const summaryDate = document.getElementById("summaryDate");
-//     const summaryTravelers = document.getElementById("summaryTravelers");
-
-//     pkgSelect && pkgSelect.addEventListener("change", () => {
-//         const selected = pkgSelect.options[pkgSelect.selectedIndex];
-//         summaryPackage.textContent = selected && selected.value ? selected.textContent : "Not selected";
-//     });
-//     dateInput && dateInput.addEventListener("change", () => {
-//         summaryDate.textContent = dateInput.value || "--";
-//     });
-//     travelersInput && travelersInput.addEventListener("input", () => {
-//         summaryTravelers.textContent = travelersInput.value || 1;
-//     });
-// });
 document.addEventListener("DOMContentLoaded", () => {
 
     const pkgSelect = document.getElementById("package");
@@ -143,7 +139,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateSummary() {
 
-        // Package
         if (pkgSelect) {
             const selected = pkgSelect.options[pkgSelect.selectedIndex];
             summaryPackage.textContent =
@@ -152,18 +147,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     : "Not selected";
         }
 
-        // Date
         if (dateInput) {
             summaryDate.textContent = dateInput.value || "--";
         }
 
-        // Travelers
         if (travelersInput) {
             summaryTravelers.textContent = travelersInput.value || "1";
         }
     }
 
-    // Event Listeners
     if (pkgSelect) {
         pkgSelect.addEventListener("change", updateSummary);
     }
@@ -176,7 +168,6 @@ document.addEventListener("DOMContentLoaded", () => {
         travelersInput.addEventListener("input", updateSummary);
     }
 
-    // Update summary immediately when page loads
     updateSummary();
 
 });
