@@ -13,7 +13,8 @@ class Package(models.Model):
     title_with_duration = models.CharField(max_length = 100)
     package_duration = models.CharField(max_length=50)
     difficulty = models.CharField(max_length = 50)
-    max_people = models.CharField(max_length = 50)
+    max_people = models.CharField(max_length=50)          # display text, e.g. "6-10" — unchanged
+    total_seats = models.PositiveIntegerField(default=10)  # NEW — actual number used for seat-limit enforcement
     season = models.CharField(max_length = 50)
     food_stay = models.TextField()
     # travel_driver = models.TextField()

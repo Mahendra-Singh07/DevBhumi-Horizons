@@ -88,11 +88,11 @@ def view_subscribe(request):
 
         # 'created' is True only when a new subscriber is created.
         if created:
-            messages.success(request, "Subscribe Successfully")
+            messages.success(request, "Subscribe Successfully", extra_tags="newsletter")
 
         # 'created' is False when the email already exists.
         else:
-            messages.warning(request, "You Already Subscribe")
+            messages.warning(request, "You Already Subscribe", extra_tags="newsletter")
 
     # Redirect back to the contact section of the home page
     return redirect(reverse("home") + "#contact")
@@ -568,29 +568,33 @@ def view_reset_password(request):
 
 
 
+from django.db.models import Sum
+
 
 def view_booking(request):
     if request.method == "POST":
 
+        # Server-side login enforcement — matches the frontend's
+        # data-requires-auth gate, so even a bypassed/direct POST can't
+        # sneak past it.
+        if not request.user.is_authenticated:
+            messages.error(request, "Please login to complete your booking.")
+            return redirect("home")
+
         name = request.POST.get("name")
-        email = request.POST.get("email")
+        email = request.user.email  # always the account email — never trust the form for this
         phone = request.POST.get("phone")
         travel_date = request.POST.get("travel_date")
         travelers = request.POST.get("total_travelers")
         special_request = request.POST.get("request")
 
-        if request.user.is_authenticated:
-            email = request.user.email
-            if not name:
-                name = f"{request.user.first_name} {request.user.last_name}".strip()
+        if not name:
+            name = f"{request.user.first_name} {request.user.last_name}".strip()
 
         if not name:
             messages.error(request, "Name is required")
             return redirect("booking")
 
-        if not email:
-            messages.error(request, "Email is Required")
-            return redirect("booking")
         if not phone:
             messages.error(request, "Phone number is required.")
             return redirect("booking")
@@ -599,31 +603,27 @@ def view_booking(request):
             messages.error(request, "Travel date is required.")
             return redirect("booking")
 
-        if not travelers:
-            messages.error(request, "Please enter number of travelers.")
+        # Safe int conversion — travelers_raw could be "", None, or garbage
+        # (empty field, tampered request, etc.) — int() alone would crash.
+        try:
+            travelers_requested = int(travelers)
+            if travelers_requested < 1:
+                raise ValueError
+        except (TypeError, ValueError):
+            messages.error(request, "Please enter a valid number of travelers.")
             return redirect("booking")
 
         package = get_object_or_404(Package, slug=request.POST.get("package_slug"))
 
-        # Don't let the same person create a fresh duplicate booking for the
-        # same package on the same travel date — different dates are fine
-        # (e.g. booking again for a different trip/group).
-        if request.user.is_authenticated:
-            existing_booking = Booking.objects.filter(
-                user=request.user,
-                package=package,
-                travel_date=travel_date,
-                payment_status__in=["pending", "paid"],
-            ).order_by("-booking_date").first()
-        else:
-            existing_booking = Booking.objects.filter(
-                email=email,
-                package=package,
-                travel_date=travel_date,
-                payment_status__in=["pending", "paid"],
-            ).order_by("-booking_date").first()
-            return redirect("login")
-            
+        # 1) Duplicate-booking check FIRST — resume/redirect before touching seat counts,
+        #    so a user's own pending booking never gets blocked by its own seat-hold.
+        existing_booking = Booking.objects.filter(
+            user=request.user,
+            package=package,
+            travel_date=travel_date,
+            payment_status__in=["pending", "paid"],
+        ).order_by("-booking_date").first()
+
         if existing_booking:
             if existing_booking.payment_status == "paid":
                 messages.info(request, "You've already booked this package for this date. Check My Bookings for details.")
@@ -632,21 +632,34 @@ def view_booking(request):
                 messages.info(request, "You already have a pending booking for this package on this date — complete the payment to confirm it.")
                 return redirect("payment", booking_id=existing_booking.id)
 
+        # 2) Seat-limit check — only reached for genuinely new bookings now.
+        seats_taken = Booking.objects.filter(
+            package=package,
+            travel_date=travel_date,
+            payment_status__in=["pending", "paid"],
+        ).aggregate(total=Sum("travelers"))["total"] or 0
+
+        seats_left = package.total_seats - seats_taken
+
+        if seats_left <= 0:
+            messages.error(request, f"Sorry, {package.package_name} is fully booked for {travel_date}. Please choose a different date.")
+            return redirect("booking")
+
+        if travelers_requested > seats_left:
+            messages.error(request, f"Only {seats_left} seat(s) left for {package.package_name} on {travel_date}. Please reduce travelers or pick another date.")
+            return redirect("booking")
+
         booking = Booking.objects.create(
             name=name,
             email=email,
             phone=phone,
             travel_date=travel_date,
-            travelers=travelers,
+            travelers=travelers_requested,
             package=package,
             special_request=special_request,
+            user=request.user,
         )
 
-        if request.user.is_authenticated:
-            booking.user = request.user
-            booking.save()
-
-        # Booking created (pending payment) — send them to pay the advance now
         return redirect("payment", booking_id=booking.id)
 
     package = Package.objects.all()
@@ -658,7 +671,6 @@ def view_booking(request):
         "special": request.GET.get("request"),
         "package_slug": request.GET.get("package_slug")
     })
-
 
 import razorpay
 
@@ -726,13 +738,16 @@ def verify_payment(request):
     booking.razorpay_payment_id = params_dict["razorpay_payment_id"]
     booking.save()
 
+    send_invoice_email(booking)
+
     return JsonResponse({"success": True, "message": "Payment verified successfully."})
 
 
 
 from django.template.loader import render_to_string
 from django.http import HttpResponse
-from xhtml2pdf import pisa
+from django.core.mail import EmailMessage
+from weasyprint import HTML
 
 
 def _invoice_context(booking):
@@ -749,6 +764,46 @@ def _invoice_context(booking):
         "amount_paid": amount_paid,
         "balance_due": balance_due,
     }
+
+
+def generate_invoice_pdf_bytes(booking):
+    """Renders the invoice template to PDF bytes — used by both the
+    download button and the auto-emailed invoice, so there's one source
+    of truth for what an invoice looks like."""
+    
+    context = _invoice_context(booking)
+    context["for_pdf"] = True
+
+    html = render_to_string("travelingapp/invoice.html", context)
+    return HTML(string=html).write_pdf()
+
+
+def send_invoice_email(booking):
+
+    """Best-effort — if this fails, the payment itself must NOT be treated
+    as failed, since it already succeeded and was verified."""
+    try:
+        pdf_bytes = generate_invoice_pdf_bytes(booking)
+        filename = f"Invoice_DBH-{booking.id:05d}.pdf"
+
+        email = EmailMessage(
+            subject=f"Your DevBhumi Horizons Invoice — DBH-{booking.id:05d}",
+            body=(
+                f"Hi {booking.name},\n\n"
+                f"Thank you for booking {booking.package.package_name} with DevBhumi Horizons!\n"
+                f"We've received your advance payment. Your invoice is attached to this email.\n\n"
+                f"See you in the mountains!\n"
+                f"— DevBhumi Horizons"
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[booking.email],
+        )
+        email.attach(filename, pdf_bytes, "application/pdf")
+        email.send()
+        return True
+    except Exception as e:
+        print("Invoice email failed:", type(e).__name__, "-", str(e))
+        return False
 
 
 def _can_view_invoice(request, booking):
@@ -773,6 +828,7 @@ def view_invoice(request, booking_id):
 
     context = _invoice_context(booking)
     context["for_pdf"] = False
+
     return render(request, "travelingapp/invoice.html", context)
 
 
@@ -786,16 +842,12 @@ def download_invoice(request, booking_id):
     if not _can_view_invoice(request, booking):
         return redirect("home")
 
-    context = _invoice_context(booking)
-    context["for_pdf"] = True
-    html = render_to_string("travelingapp/invoice.html", context)
+    pdf_bytes = generate_invoice_pdf_bytes(booking)
 
-    response = HttpResponse(content_type="application/pdf")
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="Invoice_DBH-{booking.id:05d}.pdf"'
-
-    pisa_status = pisa.CreatePDF(html, dest=response)
-
-    if pisa_status.err:
-        return HttpResponse("Error generating PDF invoice.", status=500)
-
+    
     return response
+
+
+    

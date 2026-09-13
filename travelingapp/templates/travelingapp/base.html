@@ -119,11 +119,12 @@
                     <p><i class="fa-solid fa-envelope"></i> devbhumi@gmail.com</p>
                     <p><i class="fa-solid fa-phone-volume"></i> +91 7982478183</p>
                     <p><i class="fa-solid fa-location-dot"></i> Village-palla, Faridabad, Haryana 121003</p>
+
                     {% if messages %}
-                        {% for mssg in messages %}
-                            <div class="newsletter-message {{ mssg.tags }}">
-                                {{ mssg }}
-                            </div>
+                        {% for message in messages %}
+                            {% if "newsletter" in message.tags %}
+                            <div class="newsletter-message {{ message.tags }}">{{ message }}</div>
+                            {% endif %}
                         {% endfor %}
                     {% endif %}
                     <form class="newsletter-form" action="{% url 'subscribe' %}" method="POST">
