@@ -1,15 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Subscribers, Booking, Package
+from .models import Subscribers, Booking, Package, User, EmailOTP, Profile, Review
 from django.contrib import messages
 from django.urls import reverse
 from django.http import JsonResponse
-from .models import User, EmailOTP, Profile
+# from .models import User, EmailOTP, Profile
 
 
 import json
 from django.utils import timezone
 from datetime import timedelta
-from django.core.mail import send_mail
+# from django.core.mail import send_mail
 from django.conf import settings
 from django.views.decorators.http import require_POST
 from django.contrib.auth import authenticate, login, logout
@@ -167,7 +167,7 @@ def view_subscribe(request):
 
 
 
-
+from django.db.models import Avg
 def view_package_detail(request, slug):
     package = get_object_or_404(Package, slug=slug, is_active=True)
 
@@ -176,9 +176,16 @@ def view_package_detail(request, slug):
         location__region=package.location.region
     ).exclude(id=package.id)[:4]
 
+    approved_reviews = package.reviews.filter(is_approved=True).order_by("-created_at")
+    average_rating = approved_reviews.aggregate(avg=Avg("rating"))["avg"]
+
     d1 = {"package":package,
-          "food_items": package.food_stay.split("\n"),
-          "related_packages": related_packages}
+            "food_items": package.food_stay.split("\n"),
+            "related_packages": related_packages,
+            "reviews": approved_reviews,
+            "average_rating": average_rating,
+            "review_count": approved_reviews.count(),
+        }
 
     packages = Package.objects.all()
     return render(request, 'travelingapp/traveling-view-detail.html', d1)
@@ -444,7 +451,10 @@ def view_my_bookings(request):
         return redirect("home")
 
     bookings = request.user.bookings.all().order_by("-booking_date")
-    return render(request, "travelingapp/my_bookings.html", {"bookings": bookings})
+    return render(request, "travelingapp/my_bookings.html", {
+        "bookings": bookings,
+        "today": timezone.now().date(),
+    })
 
 
 
@@ -660,6 +670,8 @@ def view_booking(request):
             user=request.user,
         )
 
+        send_admin_pending_booking_notification(booking)
+
         return redirect("payment", booking_id=booking.id)
 
     package = Package.objects.all()
@@ -673,11 +685,9 @@ def view_booking(request):
     })
 
 import razorpay
-
 razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
 BOOKING_ADVANCE_AMOUNT = 1000  # rupees — fixed deposit to confirm a booking
-
 
 def view_payment(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)
@@ -739,6 +749,7 @@ def verify_payment(request):
     booking.save()
 
     send_invoice_email(booking)
+    send_admin_payment_confirmed_notification(booking)
 
     return JsonResponse({"success": True, "message": "Payment verified successfully."})
 
@@ -850,4 +861,189 @@ def download_invoice(request, booking_id):
     return response
 
 
-    
+
+CANCELLATION_WINDOW_DAYS = 3       # cancel this many days (or more) before travel_date to qualify for a refund
+CANCELLATION_REFUND_PERCENT = 50   # % of the advance refunded if cancelled within the window
+
+def send_cancellation_email(booking, refund_amount):
+    try:
+        if refund_amount>0:
+            body=(
+                f"Hi {booking.name},\n\n"
+                f"Your booking for {booking.package.package_name} ({booking.travel_date}) has been cancelled.\n"
+                f"A refund of ₹{refund_amount:.0f} will be credited to your original payment method within 5-7 business days.\n\n"
+                f"We hope to see you on another trip soon!\n"
+                f"— DevBhumi Horizons"
+            )
+        else:
+            f"Hi {booking.name},\n\n"
+            f"Your booking for {booking.package.package_name} ({booking.travel_date}) has been cancelled.\n"
+            f"As per our cancellation policy, no refund is applicable for this cancellation.\n\n"
+            f"We hope to see you on another trip soon!\n"
+            f"— DevBhumi Horizons"
+
+        email = EmailMessage(
+            subject =f"Booking Cancelled — DBH-{booking.id:05d}",
+            body = body,
+            from_email = settings.DEFAULT_FROM_EMAIL,
+            to = [booking.email]
+
+        )
+        email.save()
+        return True
+        
+    except Exception as e:
+        print("Cancellation email failed:", type(e).__name__, "-", str(e))
+        return False
+
+
+@require_POST
+def cancel_booking(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+
+    if not request.user.is_authenticated or booking.user_id != request.user.id:
+        messages.error(request, "You can't cancel this booking.")
+        return redirect("my_bookings")
+
+    if booking.payment_status == "cancelled":
+        messages.info(request, "This booking is already cancelled.")
+        return redirect("my_bookings")
+
+    if booking.travel_date < timezone.now().date():
+        messages.error(request, "This trip has already passed — it can't be cancelled.")
+        return redirect("my_bookings")
+
+    days_before_trip = (booking.travel_date - timezone.now().date()).days
+    refund_amount = 0
+
+    if booking.payment_status == "paid":
+        if days_before_trip >= CANCELLATION_WINDOW_DAYS:
+            refund_amount = (BOOKING_ADVANCE_AMOUNT * CANCELLATION_REFUND_PERCENT) / 100
+
+            try:
+                refund = razorpay_client.payment.refund(booking.razorpay_payment_id, {
+                    "amount": int(refund_amount * 100),  # Razorpay expects paise
+                })
+                booking.razorpay_refund_id = refund.get("id", "")
+            except Exception as e:
+                print("Refund failed:", type(e).__name__, "-", str(e))
+                messages.error(request, "Couldn't process the refund — please contact support to cancel this booking.")
+                return redirect("my_bookings")
+
+    booking.payment_status = "cancelled"
+    booking.cancelled_at = timezone.now()
+    booking.refund_amount = refund_amount
+    booking.save()
+    send_cancellation_email(booking, refund_amount)
+
+    if refund_amount > 0:
+        messages.success(request, f"Booking cancelled. ₹{refund_amount:.0f} will be refunded to your original payment method within 5-7 business days.")
+    else:
+        messages.success(request, "Booking cancelled. No refund is applicable as per our cancellation policy.")
+
+    return redirect("my_bookings")
+
+
+
+def send_admin_pending_booking_notification(booking):
+    """Best-effort — must never block the customer's booking flow.
+    Sent to DEFAULT_FROM_EMAIL — same inbox used to send everything else."""
+    try:
+        send_mail(
+            subject=f"New booking received — {booking.package.package_name}",
+            message=(
+                f"A new booking just came in.\n\n"
+                f"Name: {booking.name}\n"
+                f"Email: {booking.email}\n"
+                f"Phone: {booking.phone}\n"
+                f"Package: {booking.package.package_name}\n"
+                f"Travel Date: {booking.travel_date}\n"
+                f"Travelers: {booking.travelers}\n"
+                f"Special Request: {booking.special_request or '-'}\n"
+                f"Booking ID: {booking.id}\n\n"
+                f"Status: Pending payment — advance not yet paid."
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[settings.DEFAULT_FROM_EMAIL],
+        )
+        return True
+    except Exception as e:
+        print("Admin notification email failed:", type(e).__name__, "-", str(e))
+        return False
+
+
+def send_admin_payment_confirmed_notification(booking):
+    """Best-effort — fires only when payment actually succeeds."""
+    try:
+        send_mail(
+            subject=f"Advance payment received — {booking.package.package_name}",
+            message=(
+                f"Advance payment has been received for this booking.\n\n"
+                f"Name: {booking.name}\n"
+                f"Email: {booking.email}\n"
+                f"Phone: {booking.phone}\n"
+                f"Package: {booking.package.package_name}\n"
+                f"Travel Date: {booking.travel_date}\n"
+                f"Travelers: {booking.travelers}\n"
+                f"Special Request: {booking.special_request or '-'}\n"
+                f"Booking ID: {booking.id}\n"
+                f"Payment ID: {booking.razorpay_payment_id}\n"
+                f"Amount Paid: ₹{BOOKING_ADVANCE_AMOUNT}\n\n"
+                f"Status: PAID — advance confirmed."
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[settings.DEFAULT_FROM_EMAIL],
+        )
+        return True
+    except Exception as e:
+        print("Admin payment-confirmed email failed:", type(e).__name__, "-", str(e))
+        return False
+
+
+@require_POST
+def view_add_review(request, booking_id):
+    booking = get_object_or_404(Booking, id = booking_id)
+
+    if not request.user.is_authenticated or booking.user_id!=request.user.id:
+        messages.error(request, "You can't review this booking.")
+        return redirect("my_bookings")
+
+    if booking.payment_status != "paid":
+        messages.error(request, "You can only review a booking after the advance is paid.")
+        return redirect("my_bookings")
+
+    if booking.travel_date >= timezone.now().date():
+        messages.error(request, "You can review this trip once the travel date has passed.")
+        return redirect("my_bookings")
+
+    if hasattr(booking, "review"):
+        messages.info(request, "You've already reviewed this booking.")
+        return redirect("my_bookings")
+
+    rating = request.POST.get("rating")
+    comment = request.POST.get("comment", "").strip()
+
+    try:
+        rating = int(rating)
+        if rating<1 and rating>5:
+            raise ValueError
+
+    except (TypeError, ValueError):
+        messages.error(request, "Please select a rating between 1 and 5.")
+        return redirect("my_bookings")
+
+
+    if not comment:
+        messages.error(request, "Please write a few words about your trip.")
+        return redirect("my_booking")
+
+    Review.objects.create(
+        booking = booking,
+        user = request.user,
+        package = booking.package,
+        rating = rating,
+        comment = comment,
+    )
+    messages.success(request, "Thanks for your review! It'll appear on the site once approved.")
+    return redirect("my_bookings")
+ 

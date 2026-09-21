@@ -54,13 +54,6 @@
                 </ul>
             </div>
 
-            <!-- # Ye package.location aaya kahan se?
-            # Ye is line ki wajah se:
-            # related_name="location"
-            # Django automatically package.location provide karta hai.
-            # Agar tum related_name nahi doge, to access karna padega:
-            # {{ package.location_set.region }}
-            # OneToOneField me default reverse name alag hota hai aur itna readable nahi hota, isliye related_name="location" dena best practice hai. -->
 
             <div class="detail-box">
                 <h3><i class="fa-solid fa-route"></i> Day-wise Itinerary</h3>
@@ -70,7 +63,6 @@
                         <div class="timeline-marker">{{day.day_number}}</div>
                         <div class="timeline-content">
                             <h4>Day {{day.day_number}} &mdash; {{day.day_title}}</h4>
-                            <!-- <ul><li>Departure from Delhi to Guptkashi</li><li>Scenic drive via Haridwar &amp; Devprayag</li><li>Check-in at hotel, dinner &amp; rest</li></ul> -->
                             <ul>
                                 {% for point in day.points.all %}
                                 <li>{{ point.point }}</li>
@@ -84,11 +76,6 @@
 
             <div class="detail-box">
                 <h3><i class="fa-solid fa-utensils"></i> Food &amp; Stay</h3>
-                <!-- <ul>
-                    <li>Stay: Hotels / Camps / Dharamshalas</li>
-                    <li>Meals: Breakfast, Lunch &amp; Dinner included</li>
-                    <li>Special Meals: Satvik / Jain on request</li>
-                </ul> -->
                 <ul>
                     {% for item in food_items %}
                     <li>{{item}}</li>
@@ -189,12 +176,10 @@
                     {% empty %}
                     <p>No gallery images available.</p>
                     {% endfor %}
-                    <!-- <div class="detail-gallery-item"><img src="{% static 'travelingapp/image/CHOPTA.jpg' %}" alt="CHOPTA.jpg"></div>
-                    <div class="detail-gallery-item"><img src="{% static 'travelingapp/image/Guptkashi.png' %}" alt="Guptkashi.png"></div>
-                    <div class="detail-gallery-item"><img src="{% static 'travelingapp/image/rishikesh.jpg' %}" alt="rishikesh.jpg"></div> -->
                 </div>
             </div>
         </div>
+
 
         <div class="booking-container">
             <h2>Book This Package</h2>
@@ -203,12 +188,11 @@
                 hours.
             </p>
             <form action="{% url 'booking' %}" method="get">
-                <input type="text" placeholder="Your Name" name="name" />
-                <input type="email" placeholder="Your Email" name="email" />
+                <input type="text" placeholder="Your Name" name="name" {% if user.is_authenticated %} value="{{user.first_name}} {{user.last_name}}" {% endif %} />
+                <input type="email" placeholder="Your Email" name="email" {% if user.is_authenticated %} value="{{user.email}}" {% endif %}/>
                 <input type="number" min="1" value="1" name="total_travelers" />
                 <textarea placeholder="Special Requests" name="request"></textarea>
                 <input type="hidden" name="package_slug" value="{{package.slug}}" />
-                <!-- <a href="{% url 'booking' %}" class="btn btn-primary btn-block">Continue to Booking <i class="fa-solid fa-arrow-right"></i></a> -->
                 <button type="submit" class="btn btn-primary btn-block">
                     Continue to Booking <i class="fa-solid fa-arrow-right"></i>
                 </button>
@@ -222,14 +206,57 @@
         </div>
     </div>
 
+    <!-- ========== Reviews Section — Related Packages se PEHLE, same section/rhythm ke andar ========== -->
+    <div class="container" style="margin-bottom:70px;">
+        <div class="section-heading">
+            <span class="eyebrow">What Travelers Say</span>
+            <h2>Traveler Reviews</h2>
+            {% if average_rating %}
+                <p style="margin-top:10px; font-size:1.1rem; font-weight:700; color:var(--color-primary);">
+                    <i class="fa-solid fa-star" style="color:#f5a623;"></i> {{ average_rating|floatformat:1 }}
+                    <span style="font-weight:500; font-size:0.88rem; color:var(--color-text-muted);">
+                        based on {{ review_count }} review{{ review_count|pluralize }}
+                    </span>
+                </p>
+            {% endif %}
+        </div>
+
+        <div style="max-width:820px; margin:28px auto 0;">
+            {% if reviews %}
+                <div style="display:flex; flex-direction:column; gap:16px;">
+                    {% for review in reviews %}
+                        <div style="background:var(--color-surface); border-radius:var(--radius-md); box-shadow:var(--shadow-soft); padding:20px 22px;">
+                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+                                <div style="width:40px; height:40px; border-radius:50%; background:var(--gradient-primary); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.85rem; flex-shrink:0;">
+                                    {{ review.user.profile.initials }}
+                                </div>
+                                <div>
+                                    <strong style="display:block; font-size:0.94rem;">{{ review.user.first_name }} {{ review.user.last_name }}</strong>
+                                    <span style="font-size:0.78rem; color:var(--color-text-muted);">{{ review.created_at|date:"d M Y" }}</span>
+                                </div>
+                                <span style="margin-left:auto; color:#f5a623; font-weight:700; font-size:0.92rem; white-space:nowrap;">
+                                    <i class="fa-solid fa-star"></i> {{ review.rating }}/5
+                                </span>
+                            </div>
+                            <p style="margin:0; color:var(--color-text); font-size:0.92rem; line-height:1.6; text-align:left;">{{ review.comment }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div style="text-align:center; padding:40px 20px; color:var(--color-text-muted); background:var(--color-surface); border-radius:var(--radius-md);">
+                    <i class="fa-solid fa-star" style="font-size:1.6rem; margin-bottom:10px; display:block; color:#ddd;"></i>
+                    No reviews yet — be the first to share your experience on this trip!
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
     <div class="container related-packages">
         <div class="section-heading">
             <span class="eyebrow">You May Also Like</span>
             <h2>Related Packages</h2>
         </div>
         <div class="package-container">
-            <!--  -->
-            <!-- </div> -->
             {% for related in related_packages%}
             <div class="package-card">
                 <div class="package-img">
@@ -247,6 +274,6 @@
             {% endfor %}
         </div>
     </div>
-    
+
 </section>
 {% endblock body %}

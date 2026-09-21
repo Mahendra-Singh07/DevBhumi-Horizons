@@ -169,6 +169,12 @@ class Booking(models.Model):
     payment_status = models.CharField(max_length=10, choices=PAYMENT_STATUS_CHOICES, default="pending")
     razorpay_order_id = models.CharField(max_length=100, blank=True, null=True)
     razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
+
+    # NEW — cancellation tracking
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+    refund_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    razorpay_refund_id = models.CharField(max_length=100, blank=True, null=True)
+    
     def __str__(self):
         return f'{self.name} - ({self.package.package_name})'
 
@@ -202,3 +208,21 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
         Profile.objects.create(user=instance)
     else:
         Profile.objects.get_or_create(user=instance)
+
+
+from django.core.validators import MinValueValidator, MaxValueValidator
+
+class Review(models.Model):
+    booking = models.OneToOneField(Booking, on_delete=models.CASCADE, related_name="review")
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reviews")
+    package = models.ForeignKey(Package, on_delete=models.CASCADE, related_name="reviews")
+
+    rating = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    comment = models.TextField()
+
+    is_approved = models.BooleanField(default = False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.email} — {self.package.package_name} ({self.rating}★)"

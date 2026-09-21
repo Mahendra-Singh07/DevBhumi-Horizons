@@ -30,4 +30,6 @@ urlpatterns = [
     path("payment/verify/", verify_payment, name="verify_payment"),
     path("invoice/<int:booking_id>/", view_invoice, name="invoice"),
     path("invoice/<int:booking_id>/download/", download_invoice, name="download_invoice"),
+    path("booking/<int:booking_id>/cancel/", cancel_booking, name="cancel_booking"),
+    path("booking/<int:booking_id>/review", view_add_review, name="add_review")
 ]

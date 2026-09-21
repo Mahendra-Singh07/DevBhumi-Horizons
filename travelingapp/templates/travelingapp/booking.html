@@ -47,9 +47,9 @@
                     <div class="field">
                         <label for="email">Email</label>
                         {% if user.is_authenticated %}
-                        <input type="email" id="email" name="email" placeholder="Enter email" value="{{user.email}}" readonly required>
+                            <input type="email" id="email" name="email" placeholder="Enter email" value="{{user.email}}" readonly required>
                         {% else %}
-                        <input type="email" id="email" name="email" placeholder="Enter email" value="{{email|default:'' }}" required >
+                            <input type="email" id="email" name="email" placeholder="Enter email" value="{{email|default:'' }}" required >
                         {% endif %}
                     </div>
                 </div>

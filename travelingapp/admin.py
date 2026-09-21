@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 
 from .models import (
     Package, Location, Itineary, ItinearyPoint, TravelDriver,
-    PricingBreakdown, PackageGallery, Booking, Subscribers, User, EmailOTP, Profile
+    PricingBreakdown, PackageGallery, Booking, Subscribers, User, EmailOTP, Profile, Review
 )
 
 admin.site.register(Package)
@@ -65,3 +65,19 @@ class EmailOTPAdmin(admin.ModelAdmin):
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ("user", "phone", "date_of_birth")
     search_fields = ("user__email", "phone")
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ("package", "user", "rating", "is_approved", "created_at")
+    list_filter = ("is_approved", "rating", "package")
+    search_fields = ("user__email", "package__package_name", "comment")
+    actions = ["approve_reviews", "unapprove_reviews"]
+
+    def approve_reviews(self, request, queryset):
+        queryset.update(is_approved=True)
+    approve_reviews.short_description = "Approve selected reviews"
+
+    def unapprove_reviews(self, request, queryset):
+        queryset.update(is_approved=False)
+    unapprove_reviews.short_description = "Unapprove selected reviews"

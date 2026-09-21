@@ -10,11 +10,6 @@
 {% block body %}
 <section class="profile-page">
   <div class="container">
-    {% if messages %}
-      {% for message in messages %}
-      <div class="newsletter-message {{ message.tags }}" style="margin-bottom: 16px;">{{ message }}</div>
-      {% endfor %}
-    {% endif %}
     <div class="profile-layout">
 
       <div class="profile-card">
@@ -56,6 +51,13 @@
                     <span style="display:inline-block; margin-top:8px; padding:3px 10px; border-radius:999px; background:rgba(27,94,32,0.1); color:var(--color-primary); font-size:0.76rem; font-weight:600;">
                       <i class="fa-solid fa-circle-check"></i> Advance Paid
                     </span>
+                  {% elif booking.payment_status == "cancelled" %}
+                    <span style="display:inline-block; margin-top:8px; padding:3px 10px; border-radius:999px; background:rgba(192,57,43,0.1); color:#c0392b; font-size:0.76rem; font-weight:600;">
+                      <i class="fa-solid fa-ban"></i> Cancelled
+                    </span>
+                    {% if booking.refund_amount > 0 %}
+                      <span style="display:block; margin-top:4px; font-size:0.76rem; color:var(--color-text-muted);">₹{{ booking.refund_amount|floatformat:0 }} refunded</span>
+                    {% endif %}
                   {% else %}
                     <span style="display:inline-block; margin-top:8px; padding:3px 10px; border-radius:999px; background:rgba(255,152,0,0.12); color:#b26a00; font-size:0.76rem; font-weight:600;">
                       <i class="fa-solid fa-clock"></i> Payment Pending
@@ -65,12 +67,56 @@
                 <div style="text-align:right;">
                   <span style="display:block; font-size:0.8rem; color:var(--color-text-muted); margin-bottom:8px;">Booked on {{ booking.booking_date|date:"d M Y" }}</span>
                   {% if booking.payment_status == "paid" %}
-                    <a href="{% url 'invoice' booking.id %}" class="btn btn-sm btn-outline-dark">View Invoice</a>
-                  {% else %}
-                    <a href="{% url 'payment' booking.id %}" class="btn btn-sm btn-primary">Pay Now</a>
+                    <a href="{% url 'invoice' booking.id %}" class="btn btn-sm btn-outline-dark" style="margin-right:6px;">View Invoice</a>
+                  {% elif booking.payment_status == "pending" %}
+                    <a href="{% url 'payment' booking.id %}" class="btn btn-sm btn-primary" style="margin-right:6px;">Pay Now</a>
+                  {% endif %}
+
+                  {% if booking.payment_status == "pending" or booking.payment_status == "paid" %}
+                    <form method="POST" action="{% url 'cancel_booking' booking.id %}" style="display:inline;"
+                          onsubmit="return confirm('Are you sure you want to cancel this booking?{% if booking.payment_status == "paid" %} Refund depends on how close the travel date is — see our cancellation policy.{% endif %}');">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-outline-dark" style="color:#c0392b; border-color:#c0392b;">Cancel</button>
+                    </form>
                   {% endif %}
                 </div>
               </div>
+
+              {% if booking.payment_status == "paid" and booking.travel_date < today %}
+                {% if booking.review %}
+                  <div style="padding:12px 20px; background:#f7f6f0; border-radius:var(--radius-sm); font-size:0.86rem; color:var(--color-text-muted);">
+                    <i class="fa-solid fa-star" style="color:#f5a623;"></i> You reviewed this trip — {{ booking.review.rating }}/5
+                    {% if not booking.review.is_approved %}
+                      <span style="margin-left:6px;">(awaiting approval)</span>
+                    {% endif %}
+                  </div>
+                {% else %}
+                  <details style="border:1px dashed var(--color-border); border-radius:var(--radius-sm); padding:12px 20px;">
+                    <summary style="cursor:pointer; font-size:0.88rem; font-weight:600; color:var(--color-primary);">
+                      <i class="fa-solid fa-star"></i> Leave a Review
+                    </summary>
+                    <form method="POST" action="{% url 'add_review' booking.id %}" style="margin-top:14px; display:flex; flex-direction:column; gap:10px;">
+                      {% csrf_token %}
+                      <div>
+                        <label style="font-size:0.82rem; font-weight:600; display:block; margin-bottom:6px;">Your rating</label>
+                        <select name="rating" required style="padding:8px 12px; border-radius:var(--radius-sm); border:1.5px solid var(--color-border);">
+                          <option value="">Select rating</option>
+                          <option value="5">★★★★★ — Excellent</option>
+                          <option value="4">★★★★ — Good</option>
+                          <option value="3">★★★ — Average</option>
+                          <option value="2">★★ — Below average</option>
+                          <option value="1">★ — Poor</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label style="font-size:0.82rem; font-weight:600; display:block; margin-bottom:6px;">Your experience</label>
+                        <textarea name="comment" rows="3" required placeholder="How was your trip?" style="width:100%; padding:10px 12px; border-radius:var(--radius-sm); border:1.5px solid var(--color-border); font-family:inherit;"></textarea>
+                      </div>
+                      <button type="submit" class="btn btn-sm btn-primary" style="align-self:flex-start;">Submit Review</button>
+                    </form>
+                  </details>
+                {% endif %}
+              {% endif %}
             {% endfor %}
           </div>
         {% else %}
