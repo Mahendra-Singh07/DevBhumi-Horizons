@@ -258,6 +258,7 @@ document.addEventListener("DOMContentLoaded", () => {
   //   }
   // });
 
+
    /* 10) Hero destination search — autocomplete dropdown */
   const searchInput = document.querySelector("#hs-destination");
   const searchSuggestion = document.querySelector(".heroSearchSuggestion");
@@ -265,14 +266,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const searchButton = document.querySelector(".hero-search-btn");
   let selectedSlug = "";
   let suggestionTimer = null;
+  let lastSuggestions = [];   // NEW — remembers the most recent fetched results
  
   const closeSuggestions = () => {
     if (searchSuggestion) searchSuggestion.innerHTML = "";
   };
-  
+ 
   const renderSuggestions = (items, keyword) => {
     if (!searchSuggestion) return;
     searchSuggestion.innerHTML = "";
+    lastSuggestions = items;   // NEW — keep these around for the search-button click
  
     items.forEach(item => {
       const row = document.createElement("div");
@@ -288,7 +291,6 @@ document.addEventListener("DOMContentLoaded", () => {
       searchSuggestion.appendChild(row);
     });
  
-    // "View all results" row — always shown under whatever matches came back
     const viewAllRow = document.createElement("div");
     viewAllRow.className = "suggestion-viewall";
     viewAllRow.innerHTML = `<i class="fa-solid fa-magnifying-glass"></i><span>View all results for "${keyword}"</span>`;
@@ -302,8 +304,8 @@ document.addEventListener("DOMContentLoaded", () => {
     searchInput.addEventListener("input", function () {
       const keyword = searchInput.value.trim();
  
-      // any manual edit invalidates a previously picked suggestion
       selectedSlug = "";
+      lastSuggestions = [];   // NEW — stale suggestions shouldn't be matched against new text
       clearTimeout(suggestionTimer);
       closeSuggestions();
  
@@ -322,8 +324,7 @@ document.addEventListener("DOMContentLoaded", () => {
         searchInput.dispatchEvent(new Event("input"));
       }
     });
-    
-    // this is for close the searchSuggestion if use click outside the search box
+ 
     document.addEventListener("click", function (e) {
       if (searchField && !searchField.contains(e.target)) closeSuggestions();
     });
@@ -336,166 +337,38 @@ document.addEventListener("DOMContentLoaded", () => {
   if (searchButton) {
     searchButton.addEventListener("click", function (e) {
       e.preventDefault();
+ 
+      const typed = searchInput ? searchInput.value.trim() : "";
+ 
+      // 1) Explicit dropdown-pick always wins
       if (selectedSlug) {
         window.location.href = `/travel/package/${selectedSlug}/`;
-      } else if (searchInput && searchInput.value.trim()) {
-        window.location.href = `/travel/explore/?destination=${encodeURIComponent(searchInput.value.trim())}`;
+        return;
+      }
+ 
+      // 2) NEW — smart-match: exact name match, or exactly one unambiguous suggestion
+      if (typed && lastSuggestions.length) {
+        const exactMatch = lastSuggestions.find(
+          item => item.package_name.toLowerCase() === typed.toLowerCase()
+        );
+        if (exactMatch) {
+          window.location.href = `/travel/package/${exactMatch.slug}/`;
+          return;
+        }
+        if (lastSuggestions.length === 1) {
+          window.location.href = `/travel/package/${lastSuggestions[0].slug}/`;
+          return;
+        }
+      }
+ 
+      // 3) Fallback — no confident single match, go to the search-results page
+      if (typed) {
+        window.location.href = `/travel/explore/?destination=${encodeURIComponent(typed)}`;
       }
     });
   }
 
-  // 11 for login/SignUp
-  // const overlay = document.getElementById("authModalOverlay");
-  // if (!overlay) return; // partial not included on this page
- 
-  // const modal = document.getElementById("authModal");
-  // const closeBtn = document.getElementById("authModalClose");
-  // const bodyLogin = document.getElementById("authBodyLogin");
-  // const bodySignup = document.getElementById("authBodySignup");
-  // const showSignupBtn = document.getElementById("showSignupBtn");
-  // const showLoginBtn = document.getElementById("showLoginBtn");
-  // const loginForm = document.getElementById("loginForm");
-  // const signupForm = document.getElementById("signupForm");
- 
-  // const openModal = (mode = "login") => {
-  //   mode === "signup" ? switchTo("signup") : switchTo("login");
-  //   overlay.classList.add("open");
-  //   document.body.classList.add("auth-modal-open");
-  // };
- 
-  // const closeModal = () => {
-  //   overlay.classList.remove("open");
-  //   document.body.classList.remove("auth-modal-open");
-  // };
- 
-  // const switchTo = (mode) => {
-  //   const showSignup = mode === "signup";
-  //   bodyLogin.hidden = showSignup;
-  //   bodySignup.hidden = !showSignup;
-  // };
- 
-  // // Open triggers — any element with data-auth-trigger="login" / "signup"
-  // document.querySelectorAll("[data-auth-trigger]").forEach(trigger => {
-  //   trigger.addEventListener("click", (e) => {
-  //     e.preventDefault();
-  //     openModal(trigger.dataset.authTrigger || "login");
-  //   });
-  // });
- 
-  // // Close interactions
-  // closeBtn.addEventListener("click", closeModal);
-  // overlay.addEventListener("click", (e) => {
-  //   if (e.target === overlay) closeModal();
-  // });
-  // document.addEventListener("keydown", (e) => {
-  //   if (e.key === "Escape" && overlay.classList.contains("open")) closeModal();
-  // });
- 
-  // // Switch between login / signup panes
-  // showSignupBtn && showSignupBtn.addEventListener("click", () => switchTo("signup"));
-  // showLoginBtn && showLoginBtn.addEventListener("click", () => switchTo("login"));
- 
-  // // Show/hide password
-  // document.querySelectorAll(".auth-toggle-pass").forEach(btn => {
-  //   btn.addEventListener("click", () => {
-  //     const input = document.getElementById(btn.dataset.target);
-  //     if (!input) return;
-  //     const icon = btn.querySelector("i");
-  //     const isHidden = input.type === "password";
-  //     input.type = isHidden ? "text" : "password";
-  //     icon.classList.toggle("fa-eye-slash", !isHidden);
-  //     icon.classList.toggle("fa-eye", isHidden);
-  //   });
-  // });
- 
-  // // ---- Form submits ----
-  // // TODO: point these at your real Django auth endpoints
-  // // (e.g. {% url 'login' %} / {% url 'signup' %}) once they exist —
-  // // for now they're intercepted so the modal doesn't just hard-navigate.
-  // if (loginForm) {
-  //   loginForm.addEventListener("submit", (e) => {
-  //     e.preventDefault();
-  //     console.log("Login submitted:", {
-  //       email: loginForm.email.value,
-  //       password: loginForm.password.value,
-  //     });
-  //     // fetch('/accounts/login/', { method: 'POST', body: new FormData(loginForm) })
-  //   });
-  // }
- 
-  // if (signupForm) {
-  //   signupForm.addEventListener("submit", (e) => {
-  //     e.preventDefault();
-  //     console.log("Signup submitted:", {
-  //       name: signupForm.name.value,
-  //       email: signupForm.email.value,
-  //       password: signupForm.password.value,
-  //       confirmPassword: signupForm.confirmPassword.value
-  //     });
-  //     // fetch('/accounts/signup/', { method: 'POST', body: new FormData(signupForm) })
-  //   });
-  // }
-
-  // ==========================================================
-  // 11) User Profile Dropdown
-  // ==========================================================
-
-  // const userBtn = document.getElementById("userBtn");
-  // const userDropdown = document.getElementById("userDropdown");
-
-  // if (userBtn && userDropdown) {
-
-  //   userBtn.addEventListener("click", (e) => {
-  //     e.stopPropagation();
-
-  //     userDropdown.classList.toggle("show");
-  //   });
-
-  //   // Click outside → dropdown close
-  //   document.addEventListener("click", (e) => {
-  //     if (!userBtn.contains(e.target) && !userDropdown.contains(e.target)) {
-  //       userDropdown.classList.remove("show");
-  //     }
-  //   });
-
-  // }
-
   
-  // function getCookie(name) {
-  //   const match = document.cookie.match(
-  //     new RegExp("(^| )" + name + "=([^;]+)")
-  //   );
-
-  //   return match ? match[2] : null;
-  // }
-  // const logoutBtn = document.getElementById("logoutBtn");
-
-  // if (logoutBtn) {
-  //   logoutBtn.addEventListener("click", () => {
-
-  //     fetch("/travel/auth/logout/", {
-  //       method: "POST",
-
-  //       headers: {
-  //         "X-CSRFToken": getCookie("csrftoken"),
-  //       },
-
-  //     })
-  //       .then(res => res.json())
-  //       .then(data => {
-
-  //         if (data.success) {
-  //           window.location.reload();
-  //         }
-
-  //       })
-  //       .catch(() => {
-  //         alert("Logout failed. Please try again.");
-  //       });
-
-  //   });
-
-  // }
   console.log("DevBhumi Horizons — Explore Uttarakhand with heart!");
 
 });

@@ -73,11 +73,13 @@
                   {% endif %}
 
                   {% if booking.payment_status == "pending" or booking.payment_status == "paid" %}
-                    <form method="POST" action="{% url 'cancel_booking' booking.id %}" style="display:inline;"
-                          onsubmit="return confirm('Are you sure you want to cancel this booking?{% if booking.payment_status == "paid" %} Refund depends on how close the travel date is — see our cancellation policy.{% endif %}');">
-                      {% csrf_token %}
-                      <button type="submit" class="btn btn-sm btn-outline-dark" style="color:#c0392b; border-color:#c0392b;">Cancel</button>
-                    </form>
+                    {% if booking.travel_date >= today %}
+                      <form method="POST" action="{% url 'cancel_booking' booking.id %}" style="display:inline;"
+                            onsubmit="return confirm('Are you sure you want to cancel this booking?{% if booking.payment_status == "paid" %} Refund depends on how close the travel date is — see our cancellation policy.{% endif %}');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-dark" style="color:#c0392b; border-color:#c0392b;">Cancel</button>
+                      </form>
+                    {% endif %}
                   {% endif %}
                 </div>
               </div>

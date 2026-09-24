@@ -225,4 +225,17 @@ class Review(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.email} — {self.package.package_name} ({self.rating}★)"
+        return f"{self.user.email} — {self.package.package_name} ({self.rating}★)"\
+
+
+class PackageDepartureDate(models.Model):
+    package = models.ForeignKey(Package, on_delete = models.CASCADE, related_name = "departure_dates")
+    date = models.DateField()
+    is_active = models.BooleanField(default = True)
+
+    class Meta:
+        unique_together = ("package", "date")
+        ordering = ["date"] 
+
+    def __str__(self):
+        return f"{self.package.package_name} — {self.date}"

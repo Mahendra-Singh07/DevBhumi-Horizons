@@ -3,10 +3,10 @@ from django.contrib.auth.admin import UserAdmin
 
 from .models import (
     Package, Location, Itineary, ItinearyPoint, TravelDriver,
-    PricingBreakdown, PackageGallery, Booking, Subscribers, User, EmailOTP, Profile, Review
+    PricingBreakdown, PackageGallery, Booking, Subscribers, User, EmailOTP, Profile, Review, PackageDepartureDate
 )
 
-admin.site.register(Package)
+# admin.site.register(Package)
 admin.site.register(Location)
 admin.site.register(Itineary)
 admin.site.register(ItinearyPoint)
@@ -81,3 +81,19 @@ class ReviewAdmin(admin.ModelAdmin):
     def unapprove_reviews(self, request, queryset):
         queryset.update(is_approved=False)
     unapprove_reviews.short_description = "Unapprove selected reviews"
+
+
+class PackageDepartureDateInline(admin.TabularInline):
+    model = PackageDepartureDate
+    extra = 3          # naye Package add karte waqt 3 khaali date-rows dikhengi
+    ordering = ["date"]
+ 
+
+class PackageAdmin(admin.ModelAdmin):
+    list_display = ("package_name", "price", "total_seats", "is_active", "is_featured")
+    list_filter = ("is_active", "is_featured", "difficulty")
+    search_fields = ("package_name",)
+    inlines = [PackageDepartureDateInline]
+ 
+ 
+admin.site.register(Package, PackageAdmin)

@@ -16,18 +16,84 @@ from django.contrib.auth import authenticate, login, logout
 from django.core.mail import send_mail, BadHeaderError
 import smtplib
 
+from django_ratelimit.decorators import ratelimit
+
+def email_key(group, request):
+    """Rate-limit key based on the email in the JSON body, not the IP —
+    so an attacker can't dodge the limit just by switching IPs/VPNs while
+    still targeting the same victim's inbox."""
+    try:
+        data = json.loads(request.body)
+        return data.get("email", "").strip().lower() or "unknown"
+    except Exception:
+        return "unknown"
+
+    
 # Create your views here.
 def view_home(request):
     return render(request, 'travelingapp/home.html')
 
-def view_explore(request):
-    # packages = Package.objects.filter(is_active=True)
 
-    return render(request, "travelingapp/explore-treks.html",
-        # {
-        #     "packages": packages
-        # }
+from django.db.models import Q, Avg
+
+def view_explore(request):
+    packages = Package.objects.filter(is_active=True).annotate(
+        avg_rating=Avg("reviews__rating", filter=Q(reviews__is_approved=True))
     )
+                # Yahan Q istemal karne ki asli wajah ye hai: 
+                # Django ka filter= parameter (jo Avg()/Sum()/Count() jaise aggregate functions ke andar hota hai) 
+                # sirf Q object hi accept karta hai — ye ek syntax requirement hai Django ki taraf se, 
+                # seedha filter=reviews__is_approved=True likhna Python-syntax error dega 
+                # (keyword argument ke andar doosra = nahi chal sakta). 
+                # Isliye condition ko Q(...) mein wrap karna zaroori hai, 
+                # chahe wo ek hi condition ho, koi OR/AND na ho.
+    destination = request.GET.get("destination", "").strip()
+    if destination:
+        packages = packages.filter(
+            Q(package_name__icontains=destination) |
+            Q(location__place__icontains=destination) |
+            Q(location__region__icontains=destination)
+        )
+
+    season = request.GET.get("season", "").strip()
+    if season:
+        packages = packages.filter(season__icontains=season)
+
+    difficulty = request.GET.get("difficulty", "").strip()
+    if difficulty:
+        packages = packages.filter(difficulty__iexact=difficulty)
+
+    min_price = request.GET.get("min_price", "").strip()
+    if min_price.isdigit():
+        packages = packages.filter(price__gte=min_price)
+
+    max_price = request.GET.get("max_price", "").strip()
+    if max_price.isdigit():
+        packages = packages.filter(price__lte=max_price)
+
+    packages = packages.order_by("package_name")
+
+    # Dropdown options built from whatever actually exists in the DB —
+    # avoids "Moderate" vs "moderate" style mismatches with hardcoded lists.
+    all_seasons = (
+        Package.objects.filter(is_active=True)
+        .exclude(season="").values_list("season", flat=True).distinct()
+    )
+    all_difficulties = (
+        Package.objects.filter(is_active=True)
+        .exclude(difficulty="").values_list("difficulty", flat=True).distinct()
+    )
+
+    return render(request, "travelingapp/explore-treks.html", {
+        "packages": packages,
+        "destination": destination,
+        "season": season,
+        "difficulty": difficulty,
+        "min_price": min_price,
+        "max_price": max_price,
+        "all_seasons": all_seasons,
+        "all_difficulties": all_difficulties,
+    })
 # Ab agar hum likhenge:
     # packages = Package.objects.all()
 # To saare 10 packages website par dikh jayenge.
@@ -250,9 +316,13 @@ def _send_otp_email(user):
     except (smtplib.SMTPException, BadHeaderError):
         return False
 
-
+@ratelimit(key='ip', rate='5/h', block= False )
 @require_POST
 def view_signup(request):
+    if getattr(request, 'limited', False):
+        return JsonResponse({
+            "success": False, "error": "Too many signup attempts. Please try again in a while."
+        }, status=429)
     # if request.method == "POST":
     data = json.loads(request.body)
     first_name = data.get("firstName", "").strip()
@@ -309,9 +379,16 @@ def view_signup(request):
 
     return JsonResponse({"success": True, "message": "OTP sent to your email.", "email": email})
 
-
+# ---------- Verify OTP ----------
+@ratelimit(key=email_key, rate='6/10m', block=False)
 @require_POST
 def view_verify_otp(request):
+
+    if getattr(request, 'limited', False):
+        return JsonResponse({
+            "success": False, "error": "Too many signup attempts. Please try again in a while."
+        }, status=429)
+    
     data = json.loads(request.body)
     email = data.get("email","").strip().lower()
     otp_code = data.get("otp", "").strip()
@@ -343,8 +420,15 @@ def view_verify_otp(request):
 
     return JsonResponse({"success": True, "message": "Account verified successfully."})
 
+@ratelimit(key=email_key, rate='3/10m', block=False)
 @require_POST
 def view_resend_otp(request):
+
+    if getattr(request, 'limited', False):
+        return JsonResponse({
+            "success": False, "error": "Too many resend requests. Please wait a few minutes and try again."
+        }, status=429)
+
     data = json.loads(request.body)
     email = data.get("email", "").strip().lower()
 
@@ -359,8 +443,16 @@ def view_resend_otp(request):
     _send_otp_email(user)
     return JsonResponse({"success": True, "message": "OTP resent."})
 
+# ---------- Login ----------
+@ratelimit(key='ip', rate='10/15m', block=False)
 @require_POST
 def view_login(request):
+
+    if getattr(request, 'limited', False):
+        return JsonResponse({
+            "success": False, "error": "Too many requests. Please wait a few minutes and try again."
+        }, status=429)
+    
     data = json.loads(request.body)
     email = data.get("email", "").strip().lower()
     password = data.get("password","")
@@ -369,7 +461,6 @@ def view_login(request):
 
     if not user:
         return JsonResponse({"success": False, "error": "Invalid Username or Password"}, status= 400)
-
 
     if not user.is_active:
         return JsonResponse({"success": False, "error": "Please verify your email first.", "needs_otp": True, "email": email}, status=403)
@@ -518,9 +609,15 @@ def view_google_login(request):
     return JsonResponse({"success": True, "message": "Logged in with Google."})
 
 
-
+@ratelimit(key=email_key, rate='3/10m', block=False)
 @require_POST
 def view_forgot_password(request):
+
+    if getattr(request, 'limited', False):
+        return JsonResponse({
+            "success": False, "error": "Too many requests. Please wait a few minutes and try again."
+        }, status=429)
+    
     data = json.loads(request.body)
     email = data.get("email", "").strip().lower()
 
@@ -537,9 +634,15 @@ def view_forgot_password(request):
 
     return JsonResponse({"success": True, "message": "Reset code sent.", "email": email})
 
-
+@ratelimit(key=email_key, rate='6/10m', block=False)
 @require_POST
 def view_reset_password(request):
+
+    if getattr(request, 'limited', False):
+        return JsonResponse({
+            "success": False, "error": "Too many requests. Please wait a few minutes and try again."
+        }, status=429)
+    
     data = json.loads(request.body)
     email = data.get("email", "").strip().lower()
     otp_code = data.get("otp", "").strip()
@@ -579,8 +682,6 @@ def view_reset_password(request):
 
 
 from django.db.models import Sum
-
-
 def view_booking(request):
     if request.method == "POST":
 
@@ -608,9 +709,21 @@ def view_booking(request):
         if not phone:
             messages.error(request, "Phone number is required.")
             return redirect("booking")
+        
+        package = get_object_or_404(Package, slug=request.POST.get("package_slug"))
 
+        # Travel date must be one of the package's admin-approved, still-active,
+        # not-in-the-past departure dates — never a free-typed/tampered value.
         if not travel_date:
-            messages.error(request, "Travel date is required.")
+            messages.error(request, "Please select a travel date.")
+            return redirect("booking")
+ 
+        valid_date = package.departure_dates.filter(
+            date=travel_date, is_active=True, date__gte=timezone.now().date() 
+        ).exists()                                     
+ 
+        if not valid_date:
+            messages.error(request, "Please select a valid, available travel date for this package.")
             return redirect("booking")
 
         # Safe int conversion — travelers_raw could be "", None, or garbage
@@ -623,7 +736,6 @@ def view_booking(request):
             messages.error(request, "Please enter a valid number of travelers.")
             return redirect("booking")
 
-        package = get_object_or_404(Package, slug=request.POST.get("package_slug"))
 
         # 1) Duplicate-booking check FIRST — resume/redirect before touching seat counts,
         #    so a user's own pending booking never gets blocked by its own seat-hold.
@@ -664,7 +776,7 @@ def view_booking(request):
             email=email,
             phone=phone,
             travel_date=travel_date,
-            travelers=travelers_requested,
+            travelers=travelers_requested,  # validated int, not the raw POST string
             package=package,
             special_request=special_request,
             user=request.user,
@@ -675,14 +787,25 @@ def view_booking(request):
         return redirect("payment", booking_id=booking.id)
 
     package = Package.objects.all()
+
+    dates_by_package = {}
+    for pkg in package:
+        available = pkg.departure_dates.filter(
+            is_active=True, date__gte=timezone.now().date() 
+        ).order_by("date")
+        dates_by_package[pkg.slug] = [d.date.isoformat() for d in available]
+
     return render(request, "travelingapp/booking.html", {
         "packages": package,
         "name": request.GET.get("name"),
         "email": request.GET.get("email"),
         "travelers": request.GET.get("total_travelers", "1"),
         "special": request.GET.get("request"),
-        "package_slug": request.GET.get("package_slug")
+        "package_slug": request.GET.get("package_slug"),
+        "dates_json": json.dumps(dates_by_package),
     })
+
+
 
 import razorpay
 razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
@@ -690,7 +813,11 @@ razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZOR
 BOOKING_ADVANCE_AMOUNT = 1000  # rupees — fixed deposit to confirm a booking
 
 def view_payment(request, booking_id):
-    booking = get_object_or_404(Booking, id=booking_id)
+    if not request.user.is_authenticated:
+        messages.error(request, "Please login to continue.")
+        return redirect("home")
+    
+    booking = get_object_or_404(Booking, id=booking_id, user=request.user)
 
     if booking.payment_status == "paid":
         messages.info(request, "This booking is already paid.")
@@ -705,7 +832,7 @@ def view_payment(request, booking_id):
         "payment_capture": 1,
     })
 
-    booking.razorpay_order_id = order["id"]
+    booking.razorpay_order_id = order["id"]  # Razorpay returns an order object containing an ID order["id"].
     booking.save()
 
     # Total package price — use the detailed pricing breakdown if the package has one,
