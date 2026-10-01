@@ -108,6 +108,17 @@
     const hint = document.getElementById("avatarHint");
     if (!file) return;
 
+    // Quick client-side check — instant feedback only. The real check that
+    // actually protects the server is validate_image_file() in views.py —
+    // this one is just so the user isn't waiting on an upload to be told "too big".
+    const MAX_SIZE_MB = 2;
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      hint.textContent = `Image must be smaller than ${MAX_SIZE_MB} MB.`;
+      hint.style.color= "red";
+      this.value = "";
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
       document.getElementById("avatarPreview").innerHTML =

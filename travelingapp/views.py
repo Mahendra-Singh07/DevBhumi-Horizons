@@ -503,6 +503,8 @@ def view_logout(request):
 
 
 
+from .validators import validate_image_file
+from django.core.exceptions import ValidationError
 
 def view_profile(request):
     if not request.user.is_authenticated:
@@ -518,6 +520,16 @@ def view_profile(request):
             messages.error(request, "First and last name can't be empty.")
             return redirect("profile")
 
+        # Validate the photo FIRST — before saving anything — so a bad upload
+        # doesn't leave the rest of the form half-applied.
+        uploaded = request.FILES.get("profile_picture")
+        if uploaded:
+            try:
+                validate_image_file(uploaded)
+            except ValidationError as e:
+                messages.error(request, e.messages[0])
+                return redirect("profile")
+
         request.user.first_name = first_name
         request.user.last_name = last_name
         request.user.save()
@@ -528,9 +540,14 @@ def view_profile(request):
         dob = request.POST.get("date_of_birth")
         profile.date_of_birth = dob or None
 
-        if request.FILES.get("profile_picture"):
-            profile.profile_picture = request.FILES["profile_picture"]
+        # if request.FILES.get("profile_picture"):
+        #     profile.profile_picture = request.FILES["profile_picture"]
 
+        if uploaded:
+            # Delete the previous photo file so replaced images don't pile up in storage
+            if profile.profile_picture:
+                profile.profile_picture.delete(save=False)
+            profile.profile_picture = uploaded
         profile.save()
         messages.success(request, "Profile updated.")
         return redirect("profile")
@@ -680,10 +697,17 @@ def view_reset_password(request):
     return JsonResponse({"success": True, "message": "Password reset successfully."})
 
 
-
 from django.db.models import Sum
+@ratelimit(key='user', rate='5/h', block=False)
 def view_booking(request):
     if request.method == "POST":
+
+        # getattr() is a Python built-in function used to get an attribute from an object.
+        if getattr(request, 'limited', False):  # Get the value of 'limited' from the request object.
+                                                # If 'limited' does not exist, return False instead of raising an error.
+            messages.error(request, "Too many booking attempts. Please try again in a while.")
+            return redirect("booking")
+
 
         # Server-side login enforcement — matches the frontend's
         # data-requires-auth gate, so even a bypassed/direct POST can't
@@ -692,6 +716,25 @@ def view_booking(request):
             messages.error(request, "Please login to complete your booking.")
             return redirect("home")
 
+        # Demo-safety cap — one account can only have this many bookings
+        # "active" (pending or paid) at once. This is the real fix for
+        # someone spam-creating bookings — rate-limiting alone only slows
+        # down login/signup, it doesn't cap what a logged-in user can do.
+        # MAX_ACTIVE_BOOKINGS_PER_USER = 5
+
+        # active_booking_count = Booking.objects.filter(
+        #     user= request.user, 
+        #     payment_status__in = ["pending", "paid"]
+        # ).count()
+
+        # if active_booking_count >= MAX_ACTIVE_BOOKINGS_PER_USER:
+        #     messages.error(request,
+        #         f"You can have up to {MAX_ACTIVE_BOOKINGS_PER_USER} active bookings at a time. "
+        #         f"Please complete payment or cancel an existing booking before creating a new one."
+        #     )
+        #     return redirect("my_bookings")
+
+        
         name = request.POST.get("name")
         email = request.user.email  # always the account email — never trust the form for this
         phone = request.POST.get("phone")

@@ -27,3 +27,5 @@ Thumbs.db
 # Local tools & backups
 cloudflared.exe
 travelingapp_backup.json
+
+sqlite_data.json

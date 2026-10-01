@@ -182,13 +182,18 @@ class Booking(models.Model):
     
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
+from .validators import validate_image_file
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     phone = models.CharField(max_length=20, blank=True)
     address = models.TextField(blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
-    profile_picture = models.ImageField(upload_to="profile_pictures/", blank=True, null=True)
+    profile_picture = models.ImageField(
+        upload_to="profile_pictures/", 
+        blank=True, 
+        null=True,
+        validators=[validate_image_file],
+    )
 
     def __str__(self):
         return f"{self.user.email}'s profile"
@@ -201,9 +206,12 @@ class Profile(models.Model):
         return (first + last).upper() or self.user.email[:2].upper()
 
 @receiver(post_save, sender=User)
-def create_or_update_user_profile(sender, instance, created, **kwargs):
+def create_or_update_user_profile(sender, instance, created, raw, **kwargs):
     # """Har naye User ke saath ek khaali Profile bhi apne aap ban jaata hai —
     # isse kabhi 'Profile does not exist' wali error nahi aayegi."""
+    if raw:
+        return
+    
     if created:
         Profile.objects.create(user=instance)
     else:

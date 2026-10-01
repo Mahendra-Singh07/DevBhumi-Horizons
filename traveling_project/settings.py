@@ -24,13 +24,55 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    ".trycloudflare.com",
-]
+# ---------- DEBUG ----------
+# config() ka teesra argument "cast" hai — .env mein string "True"/"False" likha
+# hota hai, cast=bool usse asli Python boolean bana deta hai.
+DEBUG = config("DEBUG", default=False, cast=bool)
+ 
+# ---------- ALLOWED_HOSTS ----------
+# .env mein comma-separated string hogi (jaise "127.0.0.1,localhost"),
+# isse Python list mein todna padta hai.
+
+ALLOWED_HOSTS = config(
+    "ALLOWED_HOSTS",
+    default="127.0.0.1,localhost",
+    cast=lambda v: [h.strip() for h in v.split(",")]
+)
+
+ 
+# ---------- HTTPS / Cookie security ----------
+# Ye sab tabhi ON karna hai jab site HTTPS pe live ho — isliye DEBUG se link kar
+# diya: local (DEBUG=True) mein OFF rahenge (warna http://127.0.0.1 pe login/
+# session hi kaam karna band kar dega), live (DEBUG=False) hote hi apne aap ON.
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_SSL_REDIRECT = not DEBUG
+ 
+# Render/Railway jaise platforms khud HTTPS "terminate" karte hain apne proxy
+# pe, aur Django ko plain HTTP request forward karte hain — bina is line ke,
+# Django sochega request insecure hai aur SECURE_SSL_REDIRECT infinite-redirect
+# loop bana degа. Ye line Django ko sahi se batati hai "asli request HTTPS thi".
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# Django ko internally request HTTP dikhti hai, even though user ne HTTPS use kiya tha.
+# Proxy header bhejta hai:
+# X-Forwarded-Proto: https
+# Ye setting Django ko batati hai:"Agar proxy X-Forwarded-Proto mein https bol raha hai, toh original request HTTPS thi."
+ 
+
+# ---------- Security headers ----------
+SECURE_CONTENT_TYPE_NOSNIFF = True     # browser ko file-type "guess" karne se rokta hai
+SECURE_BROWSER_XSS_FILTER = True       # purane browsers ke liye extra XSS-protection
+X_FRAME_OPTIONS = "DENY"               # site kisi aur site ke iframe mein nahi khulegi (clickjacking se bachaav)
+ 
+# HSTS — "is site ko hamesha HTTPS se hi kholna" browser ko yaad karwata hai.
+# Sirf production mein ON, aur pehli baar chhota rakha (1 din) taaki agar kuch
+# galat ho toh turant fix kar sako — baad mein practice ke hisaab se badha sakte ho.
+if not DEBUG:
+    SECURE_HSTS_SECONDS = 86400
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+ 
+
 
 CSRF_TRUSTED_ORIGINS = [
     "https://*.trycloudflare.com",
@@ -51,6 +93,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -86,10 +129,21 @@ WSGI_APPLICATION = 'traveling_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": config("MYSQL_DATABASE"),
+        "USER": config("MYSQL_USER"),
+        "PASSWORD": config("MYSQL_PASSWORD"),
+        "HOST": config("MYSQL_HOST"),
+        "PORT": config("MYSQL_PORT"),
     }
 }
 
@@ -129,6 +183,23 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+USE_CLOUDINARY = config("USE_CLOUDINARY", default=not DEBUG, cast=bool)
+
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+}
+
+if USE_CLOUDINARY:
+    CLOUDINARY_STORAGE = {
+        "CLOUD_NAME": config("CLOUDINARY_CLOUD_NAME"),
+        "API_KEY": config("CLOUDINARY_API_KEY"),
+        "API_SECRET": config("CLOUDINARY_API_SECRET"),
+    }
+    STORAGES["default"] = {"BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage"}
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
