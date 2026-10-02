@@ -1,0 +1,37 @@
+{% extends 'travelingapp/legal_base.html' %}
+{% block title %}Cancellation &amp; Refund Policy{% endblock title %}
+{% block legal_title %}Cancellation &amp; Refund Policy{% endblock legal_title %}
+{% block legal_content %}
+<h2>1. Advance payment</h2>
+<p>To confirm a booking we collect a fixed advance of <strong>&#8377;{{ POLICY.advance|floatformat:"0g" }}</strong>
+    through Razorpay. A booking is marked <em>paid</em> only after Razorpay confirms the payment.</p>
+
+<h2>2. If you cancel</h2>
+<p>You can cancel from <strong>My Bookings</strong> after logging in. What you get back depends on the date you cancel:
+</p>
+<ul>
+    <li><strong>{{ POLICY.window_days }} or more days before the travel date:</strong> {{ POLICY.refund_percent }}% of
+        the advance (&#8377;{{ POLICY.refund_amount|floatformat:"0g" }}) is refunded.</li>
+    <li><strong>Fewer than {{ POLICY.window_days }} days before the travel date:</strong> no refund.</li>
+    <li><strong>Booking not yet paid:</strong> you can cancel it; nothing was charged, so nothing is refunded.</li>
+    <li><strong>Travel date already passed:</strong> the booking can no longer be cancelled.</li>
+</ul>
+<p>Days are counted by calendar date, from the day you cancel to the travel date.</p>
+
+<h2>3. How refunds are paid</h2>
+<p>Refunds go back to the original payment method through Razorpay and usually take 5 to 7 business days to show up,
+    depending on your bank.</p>
+
+<h2>4. If we cancel or change a trip</h2>
+<p>If we have to cancel or reschedule a departure for safety reasons (for example bad weather or road closures), we will
+    contact you using the email or phone number on your booking and offer a new date or a refund of the advance.</p>
+
+<h2>5. Payment problems</h2>
+<p>If money was deducted but your booking still shows as unpaid, write to us at <a href="mailto:{{ SITE.email }}">
+    {{ SITE.email }}</a> with your booking ID and, if you have it, the Razorpay payment ID. We will check it and fix
+    it.</p>
+
+<h2>6. Contact</h2>
+<p>{{ SITE.name }}<br>{{ SITE.address }}<br>Email: <a href="mailto:{{ SITE.email }}">{{ SITE.email }}</a><br>
+    Phone: {{SITE.phone}}</p>
+{% endblock legal_content %}

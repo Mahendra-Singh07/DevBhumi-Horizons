@@ -117,7 +117,8 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
 
                 'travelingapp.context_processors.google_client_id',
-                # Custom context processor: makes GOOGLE_CLIENT_ID available in all templates
+                    # Custom context processor: makes GOOGLE_CLIENT_ID available in all templates
+                'travelingapp.context_processors.site_info', 
             ],
         },
     },
@@ -214,13 +215,36 @@ MEDIA_ROOT = BASE_DIR / "media"
 AUTH_USER_MODEL = "travelingapp.User"
 
 from decouple import config
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
+# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_HOST = "smtp.gmail.com"
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+# EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
+# DEFAULT_FROM_EMAIL = f"DevBhumi Horizons <{EMAIL_HOST_USER}>"
+
+# ---- Email ----
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")          # tumhara Gmail / verified sender
 DEFAULT_FROM_EMAIL = f"DevBhumi Horizons <{EMAIL_HOST_USER}>"
+
+# Local (DEBUG=True) -> Gmail SMTP jaise pehle. Production -> Brevo HTTPS API.
+EMAIL_PROVIDER = config("EMAIL_PROVIDER", default="smtp" if DEBUG else "brevo")
+
+if EMAIL_PROVIDER == "brevo":
+    EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
+    ANYMAIL = {
+        "BREVO_API_KEY": config("BREVO_API_KEY"),
+        "REQUESTS_TIMEOUT": (5, 20),   # (connect, read) seconds, worker hang nahi hoga
+    }
+elif EMAIL_PROVIDER == "console":
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+else:  # "smtp"
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = "smtp.gmail.com"
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
+    EMAIL_TIMEOUT = 10
 
 # if DEBUG:
 #     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

@@ -31,5 +31,8 @@ urlpatterns = [
     path("invoice/<int:booking_id>/", view_invoice, name="invoice"),
     path("invoice/<int:booking_id>/download/", download_invoice, name="download_invoice"),
     path("booking/<int:booking_id>/cancel/", cancel_booking, name="cancel_booking"),
-    path("booking/<int:booking_id>/review", view_add_review, name="add_review")
+    path("booking/<int:booking_id>/review", view_add_review, name="add_review"),
+    path('privacy-policy/', view_privacy, name='privacy'),
+    path('terms/', view_terms, name='terms'),
+    path('refund-policy/', view_refund_policy, name='refund_policy'),
 ]

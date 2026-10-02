@@ -1,0 +1,26 @@
+{% extends 'travelingapp/base.html' %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'travelingapp/css/legal.css' %}">
+{% endblock extra_css %}
+{% block body %}
+<section class="legal-page">
+    <div class="container legal-container">
+        <header class="legal-header">
+            <h1>{% block legal_title %}{% endblock legal_title %}</h1>
+            <p class="legal-updated">Last updated: {{ SITE.policy_updated }}</p>
+            {% if PAYMENTS_TEST_MODE %}
+            <p class="legal-demo">This website is a portfolio / learning project. Payments run in Razorpay <strong>test mode</strong>, so no real money is charged and no real trips are booked.</p>
+            {% endif %}
+        </header>
+        <article class="legal-body">
+            {% block legal_content %}{% endblock legal_content %}
+        </article>
+        <nav class="legal-nav" aria-label="Other policies">
+            <a href="{% url 'privacy' %}">Privacy Policy</a>
+            <a href="{% url 'terms' %}">Terms &amp; Conditions</a>
+            <a href="{% url 'refund_policy' %}">Cancellation &amp; Refund Policy</a>
+        </nav>
+    </div>
+</section>
+{% endblock body %}

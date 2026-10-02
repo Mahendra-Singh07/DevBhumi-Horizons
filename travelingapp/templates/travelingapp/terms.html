@@ -1,0 +1,49 @@
+{% extends 'travelingapp/legal_base.html' %}
+{% block title %}Terms &amp; Conditions{% endblock title %}
+{% block legal_title %}Terms &amp; Conditions{% endblock legal_title %}
+{% block legal_content %}
+<p>By using this website, creating an account or making a booking, you agree to these terms. If you do not agree, please
+    do not use the site.</p>
+
+<h2>1. Who can use the site</h2>
+<p>You must be 18 or older to create an account or make a booking. You can browse the site without an account.</p>
+
+<h2>2. Your account</h2>
+<p>Give us correct details and keep your password and verification codes private. You are responsible for activity on
+    your account. Tell us if you think someone else has used it.</p>
+
+<h2>3. Bookings and payments</h2>
+<p>Submitting a booking request does not guarantee a place. Availability and departure dates are confirmed by our team.
+    A fixed advance of &#8377;{{ POLICY.advance|floatformat:"0g" }} is paid online through Razorpay to confirm your
+    booking. Cancellations and refunds are covered in our <a href="{% url 'refund_policy' %}">Cancellation &amp; Refund
+        Policy</a>, which forms part of these terms.</p>
+
+<h2>4. Mountain travel and safety</h2>
+<p>Travel in the Himalayas carries real risks, including weather, altitude, landslides and road closures. Itineraries
+    and routes can change for safety reasons. Please tell us about any medical condition that may affect your trip,
+    follow your guide's instructions, and consider buying travel insurance. We may ask a traveller to leave or skip part
+    of a trip if it is necessary for the safety of the group.</p>
+
+<h2>5. Using the website</h2>
+<p>Do not misuse the site: no attempts to break or overload it, no fake bookings or accounts, no scraping at scale, and
+    no posting unlawful or abusive content. Reviews you post must be about your own genuine experience. By posting a
+    review you allow us to display it on the site.</p>
+
+<h2>6. Our content</h2>
+<p>The site design, text and images belong to {{ SITE.name }} or their respective owners and may not be copied for
+    commercial use without permission.</p>
+
+<h2>7. Limits on our responsibility</h2>
+<p>We work to keep the information on this site accurate, but prices, dates and details can change. To the extent the
+    law allows, we are not responsible for losses caused by events outside our control, such as natural events,
+    government orders or road and transport disruptions. Nothing here limits any right you have under applicable
+    consumer law.</p>
+
+<h2>8. Changes and governing law</h2>
+<p>We may update these terms and will change the date at the top of this page when we do. These terms are governed by
+    the laws of India.</p>
+
+<h2>9. Contact</h2>
+<p>{{ SITE.name }}, {{ SITE.address }}<br>Email: <a href="mailto:{{ SITE.email }}">{{ SITE.email }}</a> | 
+    Phone: {{SITE.phone }}</p>
+{% endblock legal_content %}

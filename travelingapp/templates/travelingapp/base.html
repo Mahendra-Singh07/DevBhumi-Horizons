@@ -116,9 +116,9 @@
 
                 <div class="footer-col">
                     <h4>Get In Touch</h4>
-                    <p><i class="fa-solid fa-envelope"></i> devbhumihorizons@gmail.com</p>
-                    <p><i class="fa-solid fa-phone-volume"></i> +91 7982478183</p>
-                    <p><i class="fa-solid fa-location-dot"></i> Village-palla, Faridabad, Haryana 121003</p>
+                    <p><i class="fa-solid fa-envelope"></i> {{SITE.email}}</p>
+                    <p><i class="fa-solid fa-phone-volume"></i>{{SITE.phone}}</p>
+                    <p><i class="fa-solid fa-location-dot"></i>{{SITE.address}}</p>
 
                     {% if messages %}
                         {% for message in messages %}
@@ -134,9 +134,18 @@
                     </form>
                 </div>
             </div>
-
+            {% if PAYMENTS_TEST_MODE %}
+                <p class="footer-demo-note">Portfolio project: payments run in Razorpay test mode. No real bookings or charges.</p>
+            {% endif %}
             <div class="footer-bottom">
-                <p>&copy 2025 DevBhumi Horizons | All Rights Reserved</p>
+                <!-- <p>&copy 2025 DevBhumi Horizons | All Rights Reserved</p> -->
+            
+                <p>&copy; {% now "Y" %} DevBhumi Horizons | All Rights Reserved</p>
+                <nav class="footer-legal" aria-label="Legal">
+                    <a href="{% url 'privacy' %}">Privacy Policy</a>
+                    <a href="{% url 'terms' %}">Terms &amp; Conditions</a>
+                    <a href="{% url 'refund_policy' %}">Cancellation &amp; Refund</a>
+                </nav>
                 <a href="#top" class="back-to-top" id="backToTop" aria-label="Back to top">
                     <i class="fa-solid fa-arrow-up"></i>
                 </a>

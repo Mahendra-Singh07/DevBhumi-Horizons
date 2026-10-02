@@ -313,7 +313,11 @@ def _send_otp_email(user):
             recipient_list=[user.email]                  # Kisko bhejna hai
         )
         return True
-    except (smtplib.SMTPException, BadHeaderError):
+    # except (smtplib.SMTPException, BadHeaderError):
+    #     return False
+    except Exception as e:
+        # SMTP error, Brevo API error (401/429/5xx), timeout, blocked network...
+        print("OTP email failed:", type(e).__name__, "-", str(e)[:200])
         return False
 
 @ratelimit(key='ip', rate='5/h', block= False )
@@ -849,46 +853,72 @@ def view_booking(request):
     })
 
 
-
+from django.db import transaction
 import razorpay
 razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
 BOOKING_ADVANCE_AMOUNT = 1000  # rupees — fixed deposit to confirm a booking
 
 def view_payment(request, booking_id):
+    # User must be logged in before making a payment.
     if not request.user.is_authenticated:
         messages.error(request, "Please login to continue.")
         return redirect("home")
-    
-    booking = get_object_or_404(Booking, id=booking_id, user=request.user)
 
+    # Only allow the logged-in user to access their own booking.
+    booking = get_object_or_404(
+        Booking,
+        id=booking_id,
+        user=request.user
+    )
+
+    # Paid bookings should not be paid again.
     if booking.payment_status == "paid":
         messages.info(request, "This booking is already paid.")
         return redirect("my_bookings")
 
+    # Cancelled bookings cannot be paid.
+    if booking.payment_status == "cancelled":
+        messages.info(request, "This booking was cancelled, so it can't be paid.")
+        return redirect("my_bookings")
+
+    # Razorpay expects the amount in paise.
     amount_paise = BOOKING_ADVANCE_AMOUNT * 100
 
-    order = razorpay_client.order.create({
-        "amount": amount_paise,
-        "currency": "INR",
-        "receipt": f"booking_{booking.id}",
-        "payment_capture": 1,
-    })
+    # Reuse the existing Razorpay order if one already exists.
+    # This prevents a new order from being created on every page refresh.
+    order_id = booking.razorpay_order_id
 
-    booking.razorpay_order_id = order["id"]  # Razorpay returns an order object containing an ID order["id"].
-    booking.save()
+    if not order_id:
+        order = razorpay_client.order.create({
+            "amount": amount_paise,
+            "currency": "INR",
+            "receipt": f"booking_{booking.id}",
+            "payment_capture": 1,
+            "notes": {
+                "booking_id": str(booking.id)
+            },
+        })
 
-    # Total package price — use the detailed pricing breakdown if the package has one,
-    # otherwise fall back to the package's base listed price.
+        # Save the Razorpay order ID with this booking.
+        order_id = order["id"]
+
+        booking.razorpay_order_id = order_id
+        booking.save(update_fields=["razorpay_order_id"])
+
+    # Get the package's total price.
+    # Use the detailed pricing if available.
     total_price = booking.package.price
+
     if hasattr(booking.package, "pricing"):
         total_price = booking.package.pricing.final_price
 
+    # Calculate the amount that will remain after the advance payment.
     remaining_amount = total_price - BOOKING_ADVANCE_AMOUNT
 
     return render(request, "travelingapp/payment.html", {
         "booking": booking,
-        "order_id": order["id"],
+        "order_id": order_id,
         "amount_paise": amount_paise,
         "amount_rupees": BOOKING_ADVANCE_AMOUNT,
         "razorpay_key_id": settings.RAZORPAY_KEY_ID,
@@ -899,29 +929,102 @@ def view_payment(request, booking_id):
 
 @require_POST
 def verify_payment(request):
-    data = json.loads(request.body)
+    # User must be logged in to verify a payment.
+    if not request.user.is_authenticated:
+        return JsonResponse(
+            {
+                "success": False,
+                "error": "Please log in again to confirm your payment."
+            },
+            status=401
+        )
 
+    # Read and validate the JSON request.
+    try:
+        data = json.loads(request.body)
+        booking_id = int(data.get("booking_id"))
+    except (ValueError, TypeError, AttributeError):
+        return JsonResponse({"success": False,"error": "Invalid payment request."},status=400 )
+
+    # Get the payment details returned by Razorpay.
     params_dict = {
-        "razorpay_order_id": data.get("razorpay_order_id", ""),
-        "razorpay_payment_id": data.get("razorpay_payment_id", ""),
-        "razorpay_signature": data.get("razorpay_signature", ""),
+        "razorpay_order_id": str(data.get("razorpay_order_id", "")),
+        "razorpay_payment_id": str(data.get("razorpay_payment_id", "")),
+        "razorpay_signature": str(data.get("razorpay_signature", "")),
     }
 
+    # All three Razorpay values are required.
+    if not all(params_dict.values()):
+        return JsonResponse({"success": False, "error": "Invalid payment request."}, status=400)
+
+    # Verify that the payment response was genuinely signed by Razorpay.
     try:
         razorpay_client.utility.verify_payment_signature(params_dict)
     except razorpay.errors.SignatureVerificationError:
         return JsonResponse({"success": False, "error": "Payment verification failed."}, status=400)
 
-    booking_id = data.get("booking_id")
-    booking = get_object_or_404(Booking, id=booking_id)
-    booking.payment_status = "paid"
-    booking.razorpay_payment_id = params_dict["razorpay_payment_id"]
-    booking.save()
 
+    # Lock the booking while updating its payment status.
+    # This prevents two requests from updating the same booking at the same time.
+    with transaction.atomic():
+        # Make sure:
+        # 1. The booking exists.
+        # 2. The booking belongs to the logged-in user.
+        # 3. The Razorpay order belongs to this booking.
+        booking = (
+            Booking.objects
+            .select_for_update()
+            .filter(
+                id=booking_id,
+                user=request.user,
+                razorpay_order_id=params_dict["razorpay_order_id"]
+            )
+            .first()
+        )
+
+        # The payment does not belong to this booking.
+        if booking is None:
+            return JsonResponse({"success": False, "error": "This payment doesn't match your booking."}, status=400)
+
+        # Handle duplicate payment verification requests.
+        if booking.payment_status == "paid":
+
+            # Same payment sent again.
+            if booking.razorpay_payment_id == params_dict["razorpay_payment_id"]:
+                return JsonResponse(
+                    {
+                        "success": True,
+                        "message": "Payment already confirmed."
+                    }
+                )
+
+            # A different payment was received for an already-paid booking.
+            print("DUPLICATE PAYMENT on booking", booking.id, "-", params_dict["razorpay_payment_id"])
+            return JsonResponse({"success": False, "error": "This booking is already paid. If you were charged twice, please contact us with your payment ID."}, status=409)
+
+        # Cancelled bookings cannot receive payments.
+        if booking.payment_status == "cancelled":
+            return JsonResponse({"success": False, "error": "This booking was cancelled, so the payment can't be applied. Please contact us."}, status=400)
+
+        # Mark the booking as paid.
+        booking.payment_status = "paid"
+
+        # Save the Razorpay payment ID for future reference.
+        booking.razorpay_payment_id = params_dict["razorpay_payment_id"]
+
+        booking.save(
+            update_fields=[
+                "payment_status",
+                "razorpay_payment_id"
+            ]
+        )
+
+    # Send emails after the database transaction is complete.
+    # so the database row isn't locked while we wait on email.
     send_invoice_email(booking)
     send_admin_payment_confirmed_notification(booking)
 
-    return JsonResponse({"success": True, "message": "Payment verified successfully."})
+    return JsonResponse({"success": True,"message": "Payment verified successfully."})
 
 
 
@@ -1217,3 +1320,13 @@ def view_add_review(request, booking_id):
     messages.success(request, "Thanks for your review! It'll appear on the site once approved.")
     return redirect("my_bookings")
  
+
+# ---------- Legal pages (Phase H) ----------
+def view_privacy(request):
+    return render(request, "travelingapp/privacy_policy.html")
+
+def view_terms(request):
+    return render(request, "travelingapp/terms.html")
+
+def view_refund_policy(request):
+    return render(request, "travelingapp/refund_policy.html")
