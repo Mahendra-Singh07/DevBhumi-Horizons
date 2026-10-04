@@ -260,3 +260,49 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 #RAZORPAY PAYMENT GATEWAY ID AND SCERET KEY 
 RAZORPAY_KEY_ID = config("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = config("RAZORPAY_KEY_SECRET")
+
+
+# ---------------------------------------------------------------------------
+# Logging + error monitoring (Phase E)
+# ---------------------------------------------------------------------------
+LOG_LEVEL = config("LOG_LEVEL", default="INFO").upper()
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "standard": {"format": "%(asctime)s %(levelname)s %(name)s: %(message)s"},
+    },
+    "handlers": {
+        "console": {"class": "logging.StreamHandler", "formatter": "standard"},
+    },
+    "root": {"handlers": ["console"], "level": LOG_LEVEL},
+    "loggers": {
+        "django.request": {"level": "WARNING"},
+        "django.security.DisallowedHost": {"level": "CRITICAL"},
+    },
+}
+
+
+SENTRY_DSN = config("SENTRY_DSN", default="")
+
+
+def _sentry_before_send(event, hint):
+    request = event.get("request")
+    if request:
+        request.pop("data", None)
+        request.pop("cookies", None)
+    return event
+
+
+if SENTRY_DSN:
+    import sentry_sdk
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        send_default_pii=False,
+        include_local_variables=False,
+        traces_sample_rate=0.0,
+        environment="development" if DEBUG else "production",
+        before_send=_sentry_before_send,
+    )

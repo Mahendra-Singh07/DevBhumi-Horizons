@@ -16,6 +16,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.core.mail import send_mail, BadHeaderError
 import smtplib
 
+import logging
+logger = logging.getLogger(__name__)
+
 from django_ratelimit.decorators import ratelimit
 
 def email_key(group, request):
@@ -315,9 +318,10 @@ def _send_otp_email(user):
         return True
     # except (smtplib.SMTPException, BadHeaderError):
     #     return False
-    except Exception as e:
+    except Exception:
         # SMTP error, Brevo API error (401/429/5xx), timeout, blocked network...
-        print("OTP email failed:", type(e).__name__, "-", str(e)[:200])
+        # print("OTP email failed:", type(e).__name__, "-", str(e)[:200])
+        logger.exception("OTP email could not be sent")
         return False
 
 @ratelimit(key='ip', rate='5/h', block= False )
@@ -999,7 +1003,8 @@ def verify_payment(request):
                 )
 
             # A different payment was received for an already-paid booking.
-            print("DUPLICATE PAYMENT on booking", booking.id, "-", params_dict["razorpay_payment_id"])
+            # print("DUPLICATE PAYMENT on booking", booking.id, "-", params_dict["razorpay_payment_id"])
+            logger.error("Duplicate payment on booking %s (payment id %s)", booking.id, params_dict["razorpay_payment_id"])
             return JsonResponse({"success": False, "error": "This booking is already paid. If you were charged twice, please contact us with your payment ID."}, status=409)
 
         # Cancelled bookings cannot receive payments.
@@ -1085,8 +1090,9 @@ def send_invoice_email(booking):
         email.attach(filename, pdf_bytes, "application/pdf")
         email.send()
         return True
-    except Exception as e:
-        print("Invoice email failed:", type(e).__name__, "-", str(e))
+    except Exception:
+        # print("Invoice email failed:", type(e).__name__, "-", str(e))
+        logger.exception("Invoice email failed for booking %s", booking.id)
         return False
 
 
@@ -1149,11 +1155,14 @@ def send_cancellation_email(booking, refund_amount):
                 f"— DevBhumi Horizons"
             )
         else:
-            f"Hi {booking.name},\n\n"
-            f"Your booking for {booking.package.package_name} ({booking.travel_date}) has been cancelled.\n"
-            f"As per our cancellation policy, no refund is applicable for this cancellation.\n\n"
-            f"We hope to see you on another trip soon!\n"
-            f"— DevBhumi Horizons"
+            body=(
+                f"Hi {booking.name},\n\n"
+                f"Your booking for {booking.package.package_name} ({booking.travel_date}) has been cancelled.\n"
+                f"As per our cancellation policy, no refund is applicable for this cancellation.\n\n"
+                f"We hope to see you on another trip soon!\n"
+                f"— DevBhumi Horizons"
+            )
+            
 
         email = EmailMessage(
             subject =f"Booking Cancelled — DBH-{booking.id:05d}",
@@ -1162,11 +1171,12 @@ def send_cancellation_email(booking, refund_amount):
             to = [booking.email]
 
         )
-        email.save()
+        email.send()
         return True
         
-    except Exception as e:
-        print("Cancellation email failed:", type(e).__name__, "-", str(e))
+    except Exception:
+        # print("Cancellation email failed:", type(e).__name__, "-", str(e))
+        logger.exception("Cancellation email failed for booking %s", booking.id)
         return False
 
 
@@ -1198,8 +1208,9 @@ def cancel_booking(request, booking_id):
                     "amount": int(refund_amount * 100),  # Razorpay expects paise
                 })
                 booking.razorpay_refund_id = refund.get("id", "")
-            except Exception as e:
-                print("Refund failed:", type(e).__name__, "-", str(e))
+            except Exception:
+                # print("Refund failed:", type(e).__name__, "-", str(e))
+                logger.exception("Razorpay refund failed for booking %s", booking.id)
                 messages.error(request, "Couldn't process the refund — please contact support to cancel this booking.")
                 return redirect("my_bookings")
 
@@ -1240,8 +1251,9 @@ def send_admin_pending_booking_notification(booking):
             recipient_list=[settings.DEFAULT_FROM_EMAIL],
         )
         return True
-    except Exception as e:
-        print("Admin notification email failed:", type(e).__name__, "-", str(e))
+    except Exception:
+        # print("Admin notification email failed:", type(e).__name__, "-", str(e))
+        logger.exception("Admin notification email failed for booking %s", booking.id)
         return False
 
 
@@ -1268,8 +1280,11 @@ def send_admin_payment_confirmed_notification(booking):
             recipient_list=[settings.DEFAULT_FROM_EMAIL],
         )
         return True
-    except Exception as e:
-        print("Admin payment-confirmed email failed:", type(e).__name__, "-", str(e))
+    except Exception:
+        # print("Admin payment-confirmed email failed:", type(e).__name__, "-", str(e))
+        logger.exception("Admin payment-confirmed email failed for booking %s", booking.id)
+                        # %s ek placeholder hai.
+                        # yaha %s ki jagah booking.id ki value aa jayegi
         return False
 
 
@@ -1330,3 +1345,7 @@ def view_terms(request):
 
 def view_refund_policy(request):
     return render(request, "travelingapp/refund_policy.html")
+
+
+def view_divide(request):
+    10/0

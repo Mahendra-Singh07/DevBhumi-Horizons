@@ -35,4 +35,5 @@ urlpatterns = [
     path('privacy-policy/', view_privacy, name='privacy'),
     path('terms/', view_terms, name='terms'),
     path('refund-policy/', view_refund_policy, name='refund_policy'),
+    path('div/',view_divide)
 ]
