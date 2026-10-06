@@ -137,16 +137,34 @@ WSGI_APPLICATION = 'traveling_project.wsgi.application'
 #     }
 # }
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": config("MYSQL_DATABASE"),
-        "USER": config("MYSQL_USER"),
-        "PASSWORD": config("MYSQL_PASSWORD"),
-        "HOST": config("MYSQL_HOST"),
-        "PORT": config("MYSQL_PORT"),
+
+# Live (Render): DATABASE_URL Neon Postgres ki taraf point karta hai.
+# Local: DATABASE_URL set nahi -> MySQL, bilkul pehle jaisa.
+DATABASE_URL = config("DATABASE_URL", default="")
+
+if DATABASE_URL:
+    import dj_database_url
+
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=60,          # Neon idle par sleep hota hai, purani connection mat rakho
+            conn_health_checks=True,  # connection mar gaya ho to dobara jodo
+        )
     }
-}
+    # Neon ke "-pooler" host PgBouncer (transaction mode) hain, server-side cursors support nahi.
+    DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": config("MYSQL_DATABASE"),
+            "USER": config("MYSQL_USER"),
+            "PASSWORD": config("MYSQL_PASSWORD"),
+            "HOST": config("MYSQL_HOST"),
+            "PORT": config("MYSQL_PORT"),
+        }
+    }
 
 
 # Password validation
@@ -280,6 +298,8 @@ LOGGING = {
     "loggers": {
         "django.request": {"level": "WARNING"},
         "django.security.DisallowedHost": {"level": "CRITICAL"},
+        "weasyprint": {"level": "WARNING"},
+        "fontTools": {"level": "WARNING"},
     },
 }
 
@@ -306,3 +326,14 @@ if SENTRY_DSN:
         environment="development" if DEBUG else "production",
         before_send=_sentry_before_send,
     )
+
+
+TRUSTED_PROXY_COUNT = config("TRUSTED_PROXY_COUNT", default=0, cast=int)
+RATELIMIT_IP_META_KEY = "travelingapp.client_ip.client_ip"
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "devbhumi-ratelimit",
+    }
+}

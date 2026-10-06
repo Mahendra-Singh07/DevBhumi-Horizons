@@ -578,21 +578,42 @@ import requests
 
 @require_POST
 def view_google_login(request):
-    data = json.loads(request.body)
-    access_token = data.get("access_token", "")
+    try:
+        data = json.loads(request.body)
+    except ValueError:
+        return JsonResponse({"success": False, "error": "Invalid request."}, status=400)
+    access_token = data.get("access_token", "") if isinstance(data, dict) else ""
 
-    if not access_token:
+    if not access_token or not isinstance(access_token, str):
         return JsonResponse({"success": False, "error": "Missing Google token."}, status=400)
 
-    # Ask Google itself who this token belongs to — this is the verification step.
-    # If the token is fake/expired/tampered, Google will simply refuse to answer.
-    resp = requests.get(
-        "https://www.googleapis.com/oauth2/v3/userinfo",
-        headers={"Authorization": f"Bearer {access_token}"},
-    )
+    try:
+        # Step 1: kis app ke liye ye token bana? Hamare liye hona chahiye.
+        token_resp = requests.get(
+            "https://oauth2.googleapis.com/tokeninfo",
+            params={"access_token": access_token},
+            timeout=10,
+        )
+        if token_resp.status_code != 200:
+            return JsonResponse({"success": False, "error": "Could not verify Google account."}, status=400)
+        token_info = token_resp.json()
+        if token_info.get("aud") != settings.GOOGLE_CLIENT_ID:
+            logger.warning("Google login rejected: token was issued to a different app")
+            return JsonResponse({"success": False, "error": "Could not verify Google account."}, status=400)
+
+        # Step 2: Google se pucho token kiska hai.
+        resp = requests.get(
+            "https://www.googleapis.com/oauth2/v3/userinfo",
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=10,
+        )
+    except (requests.RequestException, ValueError):
+        logger.exception("Google token verification failed")
+        return JsonResponse({"success": False, "error": "Could not reach Google. Please try again."}, status=502)
 
     if resp.status_code != 200:
         return JsonResponse({"success": False, "error": "Could not verify Google account."}, status=400)
+
 
     info = resp.json()
     email = (info.get("email") or "").strip().lower()
@@ -1347,5 +1368,5 @@ def view_refund_policy(request):
     return render(request, "travelingapp/refund_policy.html")
 
 
-def view_divide(request):
-    10/0
+# def view_divide(request):
+#     10/0

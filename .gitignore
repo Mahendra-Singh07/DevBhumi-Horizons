@@ -29,3 +29,5 @@ cloudflared.exe
 travelingapp_backup.json
 
 sqlite_data.json
+
+neon_data.json
