@@ -8,10 +8,10 @@ def google_client_id(request):
 # ---- Phase H: one source of truth for contact details + booking policy ----
 SITE = {
     "name": "DevBhumi Horizons",
-    "email": "devbhumihorizons@gmail.com",       # <-- confirm
-    "phone": "+91 79824 79183",                  # <-- confirm
+    "email": "devbhumihorizons@gmail.com",      
+    "phone": "+91 79824 79183",                 
     "address": "Faridabad, Haryana 121003",
-    "policy_updated": "2 October 2026",
+    "policy_updated": "6 October 2026",
 }
 
 

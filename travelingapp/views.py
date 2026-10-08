@@ -3,7 +3,6 @@ from .models import Subscribers, Booking, Package, User, EmailOTP, Profile, Revi
 from django.contrib import messages
 from django.urls import reverse
 from django.http import JsonResponse
-# from .models import User, EmailOTP, Profile
 
 
 import json
@@ -13,13 +12,32 @@ from datetime import timedelta
 from django.conf import settings
 from django.views.decorators.http import require_POST
 from django.contrib.auth import authenticate, login, logout
-from django.core.mail import send_mail, BadHeaderError
-import smtplib
+from django.core.mail import send_mail
+# import smtplib
+
+from django.db.models import Q, Avg, Sum
+
+import requests
+
+# from django.db.models import Sum
+
+from django.db import transaction
+import razorpay
+
+from django.template.loader import render_to_string
+from django.http import HttpResponse
+from django.core.mail import EmailMessage
+# from weasyprint import HTML
+
+from django.utils.dateparse import parse_date
+
+from django_ratelimit.decorators import ratelimit
+
+from .validators import validate_image_file
+from django.core.exceptions import ValidationError
 
 import logging
 logger = logging.getLogger(__name__)
-
-from django_ratelimit.decorators import ratelimit
 
 def email_key(group, request):
     """Rate-limit key based on the email in the JSON body, not the IP —
@@ -31,13 +49,32 @@ def email_key(group, request):
     except Exception:
         return "unknown"
 
-    
+
+def _read_json(request):
+    """Parse the JSON body safely. Returns a dict, or None if the body is not
+    valid JSON / not a JSON object (so the view can answer 400 instead of crashing with a 500)."""
+    try:
+        data = json.loads(request.body)
+    except ValueError:      # bad JSON and bad encoding both land here
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _str(data, key):
+    """data[key] as a string — anything that is not a string (number, list, null) becomes ''.
+    Stops {"email": 123} from crashing .strip()."""
+    value = data.get(key, "")
+    return value if isinstance(value, str) else ""
+
+
+BAD_JSON_RESPONSE = {"success": False, "error": "Invalid request."}
+
+
 # Create your views here.
 def view_home(request):
     return render(request, 'travelingapp/home.html')
 
 
-from django.db.models import Q, Avg
 
 def view_explore(request):
     packages = Package.objects.filter(is_active=True).annotate(
@@ -116,32 +153,6 @@ def view_about(request):
     return render(request, 'travelingapp/about.html')
 
 
-
-
-# def view_view1(request):
-#     return render(request, 'travelingapp/traveling-view-detail.html')
-
-# def view_view2(request):
-#     return render(request, 'travelingapp/traveling-view-detail2.html')
-
-# def view_view3(request):
-#     return render(request, 'travelingapp/traveling-view-detail3.html')
-
-
-
-# def view_subscribe(request):
-#     if request.method == "POST":
-#         email = request.POST.get("email")
-
-#         subscribe = Subscribers.objects.filter(email=email).first()
-
-#         if subscribe:
-#             messages.warning(request, "You already subscribed")
-#         else:
-#             Subscribers.objects.create(email=email)
-#             messages.success(request, "Successfully subscribed")
-
-#     return redirect(reverse("home") + "#contact")
 
 
 def view_subscribe(request):
@@ -236,7 +247,7 @@ def view_subscribe(request):
 
 
 
-from django.db.models import Avg
+# from django.db.models import Avg
 def view_package_detail(request, slug):
     package = get_object_or_404(Package, slug=slug, is_active=True)
 
@@ -256,7 +267,6 @@ def view_package_detail(request, slug):
             "review_count": approved_reviews.count(),
         }
 
-    packages = Package.objects.all()
     return render(request, 'travelingapp/traveling-view-detail.html', d1)
 
 
@@ -267,6 +277,7 @@ def view_searchDestinations(request):
     keyword = request.GET.get("q", "")
 
     packages = Package.objects.filter(
+        is_active = True,
         package_name__icontains=keyword
     )[:5]
 
@@ -285,20 +296,6 @@ def view_searchDestinations(request):
     # it means django says m abhi list bhej raha hu dictionary nahi ishhe bhi JsonResponse bana krr bhej do
 
     # safe=False data ko safe/unsafe nahi bana raha. Ye bas Django ki default restriction ko allow karta hai ki top-level JSON data list bhi ho sakta hai.
-
-
-# def view_login(request):
-#     return render(request, 'travelingapp/login.html')
-
-# import json
-# from django.utils import timezone
-# from datetime import timedelta
-# from django.core.mail import send_mail
-# from django.conf import settings
-# from django.views.decorators.http import require_POST
-# from django.contrib.auth import authenticate, login, logout
-# from django.core.mail import send_mail, BadHeaderError
-# import smtplib
 
 def _send_otp_email(user):
     EmailOTP.objects.filter(user = user).delete()
@@ -332,7 +329,11 @@ def view_signup(request):
             "success": False, "error": "Too many signup attempts. Please try again in a while."
         }, status=429)
     # if request.method == "POST":
-    data = json.loads(request.body)
+    # data = json.loads(request.body)
+    data = _read_json(request)
+    if data is None:
+        return JsonResponse(BAD_JSON_RESPONSE, status=400)
+
     first_name = data.get("firstName", "").strip()
     last_name = data.get("lastName", "").strip()
     email = data.get("email", "").strip().lower()
@@ -397,7 +398,11 @@ def view_verify_otp(request):
             "success": False, "error": "Too many signup attempts. Please try again in a while."
         }, status=429)
     
-    data = json.loads(request.body)
+    # data = json.loads(request.body)
+    data = _read_json(request)
+    if data is None:
+        return JsonResponse(BAD_JSON_RESPONSE, status = 400)
+
     email = data.get("email","").strip().lower()
     otp_code = data.get("otp", "").strip()
 
@@ -437,7 +442,11 @@ def view_resend_otp(request):
             "success": False, "error": "Too many resend requests. Please wait a few minutes and try again."
         }, status=429)
 
-    data = json.loads(request.body)
+    # data = json.loads(request.body)
+    data = _read_json(request)
+    if data is None:
+        return JsonResponse(BAD_JSON_RESPONSE, status=400)
+    
     email = data.get("email", "").strip().lower()
 
     try: 
@@ -461,7 +470,11 @@ def view_login(request):
             "success": False, "error": "Too many requests. Please wait a few minutes and try again."
         }, status=429)
     
-    data = json.loads(request.body)
+    # data = json.loads(request.body)
+    data = _read_json(request)
+    if data is None:
+        return JsonResponse(BAD_JSON_RESPONSE, status= 400)
+    
     email = data.get("email", "").strip().lower()
     password = data.get("password","")
 
@@ -511,8 +524,8 @@ def view_logout(request):
 
 
 
-from .validators import validate_image_file
-from django.core.exceptions import ValidationError
+# from .validators import validate_image_file
+# from django.core.exceptions import ValidationError
 
 def view_profile(request):
     if not request.user.is_authenticated:
@@ -538,15 +551,24 @@ def view_profile(request):
                 messages.error(request, e.messages[0])
                 return redirect("profile")
 
+        dob_raw = request.POST.get("date_of_birth")
+        dob = None
+        if dob_raw:
+            try:
+                dob = parse_date(dob_raw)
+            except ValueError:
+                dob = None
+            if dob is None or dob>timezone.now().date():
+                messages.error(request, "Please enter a valid date of birth.")
+                return redirect("profile")
+                
         request.user.first_name = first_name
         request.user.last_name = last_name
         request.user.save()
 
         profile.phone = request.POST.get("phone", "").strip()
         profile.address = request.POST.get("address", "").strip()
-
-        dob = request.POST.get("date_of_birth")
-        profile.date_of_birth = dob or None
+        profile.date_of_birth = dob     # a real date, or None if the field was left empty
 
         # if request.FILES.get("profile_picture"):
         #     profile.profile_picture = request.FILES["profile_picture"]
@@ -574,7 +596,7 @@ def view_my_bookings(request):
 
 
 
-import requests
+# import requests
 
 @require_POST
 def view_google_login(request):
@@ -664,7 +686,11 @@ def view_forgot_password(request):
             "success": False, "error": "Too many requests. Please wait a few minutes and try again."
         }, status=429)
     
-    data = json.loads(request.body)
+    # data = json.loads(request.body)
+    data = _read_json(request)
+    if data is None:
+        return JsonResponse(BAD_JSON_RESPONSE, status=400)
+    
     email = data.get("email", "").strip().lower()
 
     if not email:
@@ -689,7 +715,11 @@ def view_reset_password(request):
             "success": False, "error": "Too many requests. Please wait a few minutes and try again."
         }, status=429)
     
-    data = json.loads(request.body)
+    # data = json.loads(request.body)
+    data = _read_json(request)
+    if data is None:
+        return JsonResponse(BAD_JSON_RESPONSE, status=400)
+    
     email = data.get("email", "").strip().lower()
     otp_code = data.get("otp", "").strip()
     new_password = data.get("new_password", "")
@@ -726,7 +756,7 @@ def view_reset_password(request):
     return JsonResponse({"success": True, "message": "Password reset successfully."})
 
 
-from django.db.models import Sum
+# from django.db.models import Sum
 @ratelimit(key='user', rate='5/h', block=False)
 def view_booking(request):
     if request.method == "POST":
@@ -782,7 +812,7 @@ def view_booking(request):
             messages.error(request, "Phone number is required.")
             return redirect("booking")
         
-        package = get_object_or_404(Package, slug=request.POST.get("package_slug"))
+        package = get_object_or_404(Package, slug=request.POST.get("package_slug"), is_active=True)
 
         # Travel date must be one of the package's admin-approved, still-active,
         # not-in-the-past departure dates — never a free-typed/tampered value.
@@ -858,7 +888,7 @@ def view_booking(request):
 
         return redirect("payment", booking_id=booking.id)
 
-    package = Package.objects.all()
+    package = Package.objects.filter(is_active = True)
 
     dates_by_package = {}
     for pkg in package:
@@ -878,8 +908,8 @@ def view_booking(request):
     })
 
 
-from django.db import transaction
-import razorpay
+# from django.db import transaction
+# import razorpay
 razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
 BOOKING_ADVANCE_AMOUNT = 1000  # rupees — fixed deposit to confirm a booking
@@ -996,10 +1026,7 @@ def verify_payment(request):
         # 1. The booking exists.
         # 2. The booking belongs to the logged-in user.
         # 3. The Razorpay order belongs to this booking.
-        booking = (
-            Booking.objects
-            .select_for_update()
-            .filter(
+        booking = (Booking.objects.select_for_update().filter(
                 id=booking_id,
                 user=request.user,
                 razorpay_order_id=params_dict["razorpay_order_id"]
@@ -1054,10 +1081,10 @@ def verify_payment(request):
 
 
 
-from django.template.loader import render_to_string
-from django.http import HttpResponse
-from django.core.mail import EmailMessage
-from weasyprint import HTML
+# from django.template.loader import render_to_string
+# from django.http import HttpResponse
+# from django.core.mail import EmailMessage
+# from weasyprint import HTML
 
 
 def _invoice_context(booking):
@@ -1080,6 +1107,12 @@ def generate_invoice_pdf_bytes(booking):
     """Renders the invoice template to PDF bytes — used by both the
     download button and the auto-emailed invoice, so there's one source
     of truth for what an invoice looks like."""
+
+    # Imported here, not at the top of the file: WeasyPrint needs system libraries
+    # (Pango). If the server doesn't have them, a top-level import would crash this
+    # whole module at startup and take the entire site down. Here, only PDF
+    # generation fails — and send_invoice_email / download_invoice handle that.
+    from weasyprint import HTML
     
     context = _invoice_context(booking)
     context["for_pdf"] = True
@@ -1118,13 +1151,12 @@ def send_invoice_email(booking):
 
 
 def _can_view_invoice(request, booking):
-    # Guest bookings (no user attached) are viewable by anyone with the link —
-    # logged-in bookings are locked to the owner.
-    if booking.user_id and request.user.is_authenticated and booking.user_id != request.user.id:
+    # Only the booking's owner (or site staff) can see an invoice. Old guest bookings
+    # (no user attached) used to be open to anyone, but booking ids are 1, 2, 3...
+    # so anyone could walk through them and read other people's name/phone/email.
+    if not request.user.is_authenticated:
         return False
-    if booking.user_id and not request.user.is_authenticated:
-        return False
-    return True
+    return booking.user_id == request.user.id or request.user.is_staff
 
 
 def view_invoice(request, booking_id):
@@ -1153,7 +1185,12 @@ def download_invoice(request, booking_id):
     if not _can_view_invoice(request, booking):
         return redirect("home")
 
-    pdf_bytes = generate_invoice_pdf_bytes(booking)
+    try:
+        pdf_bytes = generate_invoice_pdf_bytes(booking)
+    except Exception:
+        logger.exception("Invoice PDF could not be generated for booking %s", booking.id)
+        messages.error(request, "Couldn't generate the invoice PDF right now. Please try again later.")
+        return redirect("my_bookings")
 
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="Invoice_DBH-{booking.id:05d}.pdf"'
@@ -1203,42 +1240,62 @@ def send_cancellation_email(booking, refund_amount):
 
 @require_POST
 def cancel_booking(request, booking_id):
-    booking = get_object_or_404(Booking, id=booking_id)
 
-    if not request.user.is_authenticated or booking.user_id != request.user.id:
-        messages.error(request, "You can't cancel this booking.")
-        return redirect("my_bookings")
+    # Lock the booking row for the whole cancel (same idea as verify_payment).
+    # Without the lock, a double-click / two tabs could run this twice at once:
+    # both requests would see "paid" and BOTH would send a refund to Razorpay.
+    # With the lock, the second request waits, then sees "cancelled" and stops.
 
-    if booking.payment_status == "cancelled":
-        messages.info(request, "This booking is already cancelled.")
-        return redirect("my_bookings")
+    # transaction.atomic() 
+        # Multiple database operations ko ek single transaction ke andar run karta hai.
+        # Agar transaction ke beech mein koi error aaye, to saare database changes rollback ho jaate hain.
+    with transaction.atomic():
+        booking = get_object_or_404(Booking.objects.select_for_update(), id=booking_id)
+            # select_for_update():
+            # Selected database row ko lock karta hai jab tak transaction complete nahi hoti.
+            #
+            # Ye concurrent requests se bachne ke liye use hota hai.
+            # Example: Agar do requests same booking ko ek hi time par process karein,
+            # to ek request row ko lock karegi aur doosri request ko wait karna padega.
+            #
+            # Isse dono requests ek hi booking ko simultaneously modify nahi kar paati.
 
-    if booking.travel_date < timezone.now().date():
-        messages.error(request, "This trip has already passed — it can't be cancelled.")
-        return redirect("my_bookings")
+        if not request.user.is_authenticated or booking.user_id != request.user.id:
+            messages.error(request, "You can't cancel this booking.")
+            return redirect("my_bookings")
 
-    days_before_trip = (booking.travel_date - timezone.now().date()).days
-    refund_amount = 0
+        if booking.payment_status == "cancelled":
+            messages.info(request, "This booking is already cancelled.")
+            return redirect("my_bookings")
 
-    if booking.payment_status == "paid":
-        if days_before_trip >= CANCELLATION_WINDOW_DAYS:
-            refund_amount = (BOOKING_ADVANCE_AMOUNT * CANCELLATION_REFUND_PERCENT) / 100
+        if booking.travel_date < timezone.now().date():
+            messages.error(request, "This trip has already passed — it can't be cancelled.")
+            return redirect("my_bookings")
 
-            try:
-                refund = razorpay_client.payment.refund(booking.razorpay_payment_id, {
-                    "amount": int(refund_amount * 100),  # Razorpay expects paise
-                })
-                booking.razorpay_refund_id = refund.get("id", "")
-            except Exception:
-                # print("Refund failed:", type(e).__name__, "-", str(e))
-                logger.exception("Razorpay refund failed for booking %s", booking.id)
-                messages.error(request, "Couldn't process the refund — please contact support to cancel this booking.")
-                return redirect("my_bookings")
+        days_before_trip = (booking.travel_date - timezone.now().date()).days
+        refund_amount = 0
 
-    booking.payment_status = "cancelled"
-    booking.cancelled_at = timezone.now()
-    booking.refund_amount = refund_amount
-    booking.save()
+        if booking.payment_status == "paid":
+            if days_before_trip >= CANCELLATION_WINDOW_DAYS:
+                refund_amount = (BOOKING_ADVANCE_AMOUNT * CANCELLATION_REFUND_PERCENT) / 100
+
+                try:
+                    refund = razorpay_client.payment.refund(booking.razorpay_payment_id, {
+                        "amount": int(refund_amount * 100),  # Razorpay expects paise
+                    })
+                    booking.razorpay_refund_id = refund.get("id", "")
+                except Exception:
+                    # print("Refund failed:", type(e).__name__, "-", str(e))
+                    logger.exception("Razorpay refund failed for booking %s", booking.id)
+                    messages.error(request, "Couldn't process the refund — please contact support to cancel this booking.")
+                    return redirect("my_bookings")
+
+        booking.payment_status = "cancelled"
+        booking.cancelled_at = timezone.now()
+        booking.refund_amount = refund_amount
+        booking.save()
+
+    # Email AFTER the transaction, so the row isn't locked while we wait on the mail server.
     send_cancellation_email(booking, refund_amount)
 
     if refund_amount > 0:
@@ -1334,7 +1391,7 @@ def view_add_review(request, booking_id):
 
     try:
         rating = int(rating)
-        if rating<1 and rating>5:
+        if rating<1 or rating>5:
             raise ValueError
 
     except (TypeError, ValueError):
@@ -1344,7 +1401,7 @@ def view_add_review(request, booking_id):
 
     if not comment:
         messages.error(request, "Please write a few words about your trip.")
-        return redirect("my_booking")
+        return redirect("my_bookings")
 
     Review.objects.create(
         booking = booking,
@@ -1367,6 +1424,3 @@ def view_terms(request):
 def view_refund_policy(request):
     return render(request, "travelingapp/refund_policy.html")
 
-
-# def view_divide(request):
-#     10/0

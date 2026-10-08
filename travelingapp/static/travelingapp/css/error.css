@@ -1,0 +1,149 @@
+/* Error pages (404). Uses the global tokens from base.css */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+.err-page {
+  background: var(--color-bg);
+  padding: calc(var(--nav-height) + clamp(28px, 6vw, 72px)) 0 clamp(56px, 8vw, 96px);
+  min-height: 72vh;
+  overflow: hidden;
+}
+.err-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  align-items: center;
+  gap: clamp(24px, 5vw, 72px);
+}
+
+/* ---- copy ---- */
+.err-copy { max-width: 30rem; }
+.err-code {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: clamp(5.5rem, 15vw, 9.5rem);
+  line-height: 0.82;
+  letter-spacing: -0.05em;
+  color: var(--color-primary);
+  margin: 0 0 clamp(12px, 2vw, 20px);
+}
+.err-copy h1 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: clamp(1.7rem, 3.6vw, 2.35rem);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--color-primary-dark);
+  margin: 0 0 14px;
+}
+.err-lead {
+  color: var(--color-text-muted);
+  font-size: 1.04rem;
+  line-height: 1.7;
+  margin: 0 0 16px;
+}
+.err-path {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin: 0 0 28px;
+}
+.err-path code {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: bottom;
+  overflow-wrap: anywhere;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  color: var(--color-primary-dark);
+  background: rgba(27, 94, 32, 0.07);
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+.err-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 26px; }
+.err-links { list-style: none; display: flex; flex-wrap: wrap; gap: 6px 22px; }
+.err-links a {
+  color: var(--color-primary);
+  font-weight: 500;
+  font-size: 0.95rem;
+  text-decoration: underline;
+  text-decoration-color: rgba(27, 94, 32, 0.3);
+  text-underline-offset: 4px;
+  transition: var(--transition);
+}
+.err-links a:hover { text-decoration-color: var(--color-secondary); color: var(--color-primary-dark); }
+.err-actions .btn:focus-visible,
+.err-links a:focus-visible { outline: 3px solid var(--color-secondary); outline-offset: 3px; }
+
+/* ---- the trail map ---- */
+.err-map { margin: 0; }
+.err-map svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.c-line  { fill: none; stroke: #ddd4b8; stroke-width: 1.1; stroke-linejoin: round; }
+.c-index { fill: none; stroke: #c9be98; stroke-width: 1.7; stroke-linejoin: round; }
+
+.err-trail {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 3.6;
+  stroke-linecap: round;
+  stroke-dasharray: 0.5 11;
+}
+.err-reveal {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 12;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: err-draw 2.8s cubic-bezier(0.55, 0, 0.25, 1) 0.4s forwards;
+}
+.err-start circle:first-child { fill: var(--color-primary); }
+.err-start circle:last-child  { fill: none; stroke: var(--color-primary); stroke-width: 1.5; opacity: 0.35; }
+.err-x line {
+  stroke: var(--color-secondary-dark);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+.err-x {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: err-pop 0.55s cubic-bezier(0.3, 1.6, 0.5, 1) 3.1s forwards;
+}
+.err-tag {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 500;
+  fill: var(--color-primary-dark);
+  /* cream outline keeps the labels readable over the contour lines */
+  stroke: var(--color-bg);
+  stroke-width: 5px;
+  stroke-linejoin: round;
+  paint-order: stroke;
+}
+.err-tag-end { opacity: 0; animation: err-fade 0.5s ease 3.4s forwards; }
+.err-tag-start { opacity: 0; animation: err-fade 0.5s ease 0.2s forwards; }
+
+@keyframes err-draw { to { stroke-dashoffset: 0; } }
+@keyframes err-pop  { from { opacity: 0; transform: scale(0.3) rotate(-35deg); } to { opacity: 1; transform: none; } }
+@keyframes err-fade { to { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .err-reveal { animation: none; stroke-dashoffset: 0; }
+  .err-x { animation: none; opacity: 1; }
+  .err-tag-end, .err-tag-start { animation: none; opacity: 1; }
+}
+
+/* ---- small screens ---- */
+@media (max-width: 860px) {
+  .err-tag { font-size: 22px; stroke-width: 7px; }
+  .err-grid { grid-template-columns: 1fr; }
+  .err-copy { max-width: none; }
+  .err-map { order: -1; max-width: 460px; margin-inline: auto; }
+  .err-page { min-height: 0; }
+}
