@@ -22,8 +22,13 @@ from django.conf.urls.static import static
 
 from django.views.generic import RedirectView  
 
+from django.contrib.sitemaps.views import sitemap
+from travelingapp.seo import sitemaps, robots_txt
+
 urlpatterns = [
     path('', RedirectView.as_view(url='/travel/', permanent=False)), 
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='sitemap'),
+    path('robots.txt', robots_txt, name='robots_txt'),
     path('admin/', admin.site.urls),
     path('travel/', include('travelingapp.urls'))
 ]
