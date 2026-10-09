@@ -8,7 +8,15 @@
     <title>DevBhumi Horizons | {% block title %}Explore Uttarakhand{% endblock title %}</title>
 
     <meta name="google-site-verification" content="K3x0yZuBnzEIFhnTifwpQBdL8hhQV0peVfMGua19Lhs" />
-    
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "DevBhumi Horizons",
+            "url": "https://devbhumi-horizons.onrender.com/"
+        }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="{% static 'travelingapp/css/base.css' %}">
     <link rel="stylesheet" href="{% static 'travelingapp/css/travelling.css' %}">
@@ -23,7 +31,12 @@
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     />
-    <link rel="icon" type="image/jpg" href="{% static 'travelingapp/image/icon-logo.jpg' %}">
+
+    <link rel="icon" type="image/png" sizes="192x192" href="{% static 'travelingapp/image/android-chrome-192x192.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'travelingapp/image/favicon-32x32.png' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'travelingapp/image/favicon.ico' %}">
+    <link rel="apple-touch-icon" href="{% static 'travelingapp/image/apple-touch-icon.png' %}">
+    
 </head>
 <body data-page="{% block page_id %}{% endblock page_id %}">
 
