@@ -1,6 +1,6 @@
 {% extends 'travelingapp/base.html' %}
 {% load static %}
-{% block title%}{package.package_name}{% endblock title %}
+{% block title%}{{package.package_name}}{% endblock title %}
 {% block header_mode %}is-transparent{% endblock header_mode %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'travelingapp/css/traveling-view-detail.css' %}" />
@@ -8,7 +8,9 @@
 {% block body %}
 <section class="detail-hero">
     <div class="detail-hero-media">
-        <img src="{{ package.hero_image.url }}" alt="{{ package.package_name }}">
+        {% if package.hero_image %}
+            <img src="{{ package.hero_image.url }}" alt="{{ package.package_name }}">
+        {% endif %}
         <div class="hero-overlay"></div>
     </div>
     <div class="container detail-hero-content">
@@ -25,7 +27,7 @@
 <section class="detail-and-booking-section section">
     <div class="container detail-layout">
         <div class="detail-container">
-            <h2>{{package.package_name}}{{package.package_duration}}</h2>
+            <h2>{{package.package_name}} {{package.package_duration}}</h2>
             <p class="tagline">{{package.short_description}}</p>
 
             <div class="fact-strip">
@@ -159,10 +161,19 @@
             <div class="detail-box">
                 <h3><i class="fa-solid fa-star"></i> Highlights</h3>
                 <ul>
-                    <li>Complete Kedarnath circuit</li>
-                    <li>Himalayan temples + scenic drives</li>
-                    <li>Optional Rishikesh add-on</li>
-                    <li>Transparent pricing with commission breakdown</li>
+                    <li>{{ package.package_duration }} guided trip{% if package.location %} in {{ package.location.place }}, 
+                        {{ package.location.region }}{% endif %}</li>
+                    <li>{{ package.difficulty }} difficulty &middot; best time to go: {{ package.season }}</li>
+                    {% with total_days=package.itineraries.all|length %}
+                        {% if total_days %}
+                            <li>Day-wise itinerary planned for all {{ total_days }} day{{ total_days|pluralize }}</li>
+                        {% endif %}
+                    {% endwith %}
+                    <li>Small groups &mdash; {{ package.max_people }} travelers</li>
+                    {% if package.travel_driver %}
+                        <li>Optional private driver add-on available</li>
+                    {% endif %}
+                    <li>Transparent pricing with full cost breakdown</li>
                 </ul>
             </div>
 
@@ -170,9 +181,11 @@
                 <h3><i class="fa-solid fa-images"></i> Photo Gallery</h3>
                 <div class="detail-gallery">
                     {% for photo in package.gallery.all %}
-                    <div class="detail-gallery-item">
-                        <img src="{{photo.image.url}}" alt="{{photo.caption}}" />
-                    </div>
+                        {% if photo.image %}
+                            <div class="detail-gallery-item">
+                                <img src="{{photo.image.url}}" alt="{{photo.caption}}" />
+                            </div>
+                        {% endif %}
                     {% empty %}
                     <p>No gallery images available.</p>
                     {% endfor %}
@@ -206,7 +219,7 @@
         </div>
     </div>
 
-    <!-- ========== Reviews Section — Related Packages se PEHLE, same section/rhythm ke andar ========== -->
+    <!-- ========== Reviews Section ========== -->
     <div class="container" style="margin-bottom:70px;">
         <div class="section-heading">
             <span class="eyebrow">What Travelers Say</span>
@@ -227,11 +240,15 @@
                     {% for review in reviews %}
                         <div style="background:var(--color-surface); border-radius:var(--radius-md); box-shadow:var(--shadow-soft); padding:20px 22px;">
                             <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
-                                <div style="width:40px; height:40px; border-radius:50%; background:var(--gradient-primary); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.85rem; flex-shrink:0;">
-                                    {{ review.user.profile.profile_picture }}
+                                <div style="width:40px; height:40px; border-radius:50%; overflow:hidden; background:var(--gradient-primary); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.85rem; flex-shrink:0;">
+                                    {% if review.user.profile.profile_picture %}
+                                        <img src="{{ review.user.profile.profile_picture.url }}" alt="{{ review.user.first_name }}" style="width:100%; height:100%; object-fit:cover;" loading="lazy">
+                                    {% else %}
+                                        {% firstof review.user.profile.initials review.user.first_name|first|upper "?" %}
+                                    {% endif %}
                                 </div>
                                 <div>
-                                    <strong style="display:block; font-size:0.94rem;">{{ review.user.first_name }} {{ review.user.last_name }}</strong>
+                                    <strong style="display:block; font-size:0.94rem;">{% firstof review.user.first_name "Traveler" %}{% if review.user.last_name %} {{ review.user.last_name|slice:":1"|upper }}.{% endif %}</strong>
                                     <span style="font-size:0.78rem; color:var(--color-text-muted);">{{ review.created_at|date:"d M Y" }}</span>
                                 </div>
                                 <span style="margin-left:auto; color:#f5a623; font-weight:700; font-size:0.92rem; white-space:nowrap;">
@@ -260,7 +277,9 @@
             {% for related in related_packages%}
             <div class="package-card">
                 <div class="package-img">
-                    <img src="{{ related.hero_image.url }}" alt="{{ related.package_name }}">
+                    {% if related.hero_image %}
+                        <img src="{{ related.hero_image.url }}" alt="{{ related.package_name }}">
+                    {% endif %}
                 </div>
                 <div class="package-body">
                     <h3>{{related.package_name}}</h3>

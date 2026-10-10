@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Invoice — DBH-{{ booking.id|stringformat:"05d" }}</title>
 <style>
   body {
@@ -199,6 +200,74 @@
     color: #999;
     text-align: center;
     line-height: 1.7;
+  }
+
+  /* Screen only (PDF unaffected): long unbroken text must wrap, never widen the page */
+  @media screen {
+    .invoice-sheet,
+    .invoice-sheet td,
+    .invoice-sheet th { overflow-wrap: anywhere; }
+  }
+
+  /* ---- Mobile view (screen only; the PDF is rendered as print so it is unaffected) ---- */
+  @media screen and (max-width: 600px) {
+    body { font-size: 14px; }
+    .page-actions {
+      margin: 14px auto 0;
+      padding: 0 12px;
+      text-align: center;
+    }
+    .page-actions a {
+      display: block;
+      margin: 0 0 10px;
+      padding: 12px 16px;
+      font-size: 14px;
+      text-align: center;
+    }
+    .invoice-sheet {
+      margin: 12px auto 32px;
+      padding: 22px 16px;
+      border-left: none;
+      border-right: none;
+    }
+
+    .header-table,
+    .header-table tbody,
+    .header-table tr,
+    .header-table td,
+    .info-table,
+    .info-table tbody,
+    .info-table tr,
+    .info-table td {
+      display: block;
+      width: 100% !important;
+      padding-right: 0;
+    }
+    .header-table td + td { margin-top: 18px; }
+    .info-table td + td { margin-top: 18px; }
+    .info-table { margin-bottom: 20px; }
+
+    .company-name { font-size: 20px; }
+    .company-tagline,
+    .company-contact { font-size: 12px; }
+    .invoice-title { text-align: left; font-size: 24px; }
+    .invoice-meta { text-align: left; font-size: 13px; }
+    .info-line { font-size: 13px; }
+
+    table.line-items th,
+    table.line-items td { padding: 10px; font-size: 13px; }
+    table.line-items td.amount-col { white-space: nowrap; }
+
+    table.totals td { padding: 8px 10px; font-size: 13px; }
+    table.totals td.label { width: 62%; }
+    table.totals td.value { width: 38%; }
+    table.totals tr.due-row td { font-size: 14px; }
+
+    table.line-items { table-layout: fixed; }
+    table.line-items th.amount-col,
+    table.line-items td.amount-col { width: 34%; }
+    .payment-ref { font-size: 12px; word-break: break-all; }
+    .footer-note { font-size: 11px; }
   }
 </style>
 </head>

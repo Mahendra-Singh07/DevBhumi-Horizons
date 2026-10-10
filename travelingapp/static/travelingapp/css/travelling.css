@@ -845,7 +845,7 @@ select#hs-type {
   object-fit: cover;
   margin: 0 auto 16px;
   box-shadow: var(--shadow-card);
-  border: 5px solid #fff;
+  /* border: 5p */
   transition: var(--transition);
 }
 
