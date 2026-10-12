@@ -41,7 +41,7 @@
             <h3>Frequently Asked Questions</h3>
             <details class="faq-item" open>
                 <summary>How do I book a trek or package?</summary>
-                <p>If you cancel a paid booking at least {{ POLICY.window_days }} days before the travel date, {{ POLICY.refund_percent }}% of the ₹{{ POLICY.advance|floatformat:"0g" }} advance (₹{{ POLICY.refund_amount|floatformat:"0g" }}) is refunded. Later cancellations are not refundable. See our <a href="{% url 'refund_policy' %}">Cancellation &amp; Refund Policy</a>.</p>
+                <p>Choose a package from our Packages page and fill out the booking form — our team confirms availability within 24 hours.</p>
             </details>
             <details class="faq-item">
                 <summary>Are guides and permits included?</summary>
@@ -49,7 +49,7 @@
             </details>
             <details class="faq-item">
                 <summary>What is your cancellation policy?</summary>
-                <p>Full refunds are available up to 7 days before departure. Contact our support team for special circumstances.</p>
+                <p>If you cancel a paid booking at least {{ POLICY.window_days }} days before the travel date, {{ POLICY.refund_percent }}% of the ₹{{ POLICY.advance|floatformat:"0g" }} advance (₹{{ POLICY.refund_amount|floatformat:"0g" }}) is refunded. Later cancellations are not refundable. See our <a href="{% url 'refund_policy' %}">Cancellation &amp; Refund Policy</a>.</p>
             </details>
         </div>
     </div>
